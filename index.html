@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>StockAI Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F4F6FB;
+  --surface: #FFFFFF;
+  --surface2: #F0F3FA;
+  --border: #E2E8F5;
+  --border2: #C8D0E8;
+  --text: #0F1523;
+  --text2: #5A6480;
+  --muted: #9AA3C0;
+  --accent: #2563EB;
+  --accent-light: #EFF6FF;
+  --accent-soft: #DBEAFE;
+  --green: #059669;
+  --green-light: #ECFDF5;
+  --orange: #D97706;
+  --orange-light: #FFFBEB;
+  --red: #DC2626;
+  --red-light: #FEF2F2;
+  --purple: #7C3AED;
+  --purple-light: #F5F3FF;
+  --sidebar: #0F1523;
+  --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 22px;
+  --sh-sm: 0 1px 4px rgba(15,21,35,0.06);
+  --sh-md: 0 4px 20px rgba(15,21,35,0.09);
+  --sh-lg: 0 12px 48px rgba(15,21,35,0.14);
+  --sh-xl: 0 24px 80px rgba(15,21,35,0.18);
+  --t: 0.2s cubic-bezier(0.4,0,0.2,1);
+  --sidebar-w: 256px;
+  --font: 'Tajawal', sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { font-family:var(--font); background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
+
+/* ══ AUTH SCREEN ══ */
+#authScreen {
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 50%, #ECFDF5 100%);
+  padding:20px;
+}
+.auth-card {
+  background:var(--surface); border-radius:var(--r-xl);
+  padding:40px 36px; width:100%; max-width:420px;
+  box-shadow:var(--sh-xl); border:1px solid var(--border);
+  animation:fadeUp 0.4s ease;
+}
+.auth-logo {
+  display:flex; align-items:center; gap:12px; margin-bottom:32px;
+  justify-content:center;
+}
+.auth-logo-icon {
+  width:48px; height:48px; border-radius:14px;
+  background:linear-gradient(135deg,#2563EB,#7C3AED);
+  display:flex; align-items:center; justify-content:center; font-size:1.4rem;
+}
+.auth-logo-text { font-size:1.5rem; font-weight:900; letter-spacing:-0.5px; }
+.auth-logo-text span { color:var(--accent); }
+.auth-title { font-size:1.25rem; font-weight:800; text-align:center; margin-bottom:6px; }
+.auth-sub { font-size:0.88rem; color:var(--text2); text-align:center; margin-bottom:28px; }
+.auth-tabs {
+  display:flex; background:var(--surface2); border-radius:var(--r-md);
+  padding:4px; margin-bottom:24px; gap:4px;
+}
+.auth-tab {
+  flex:1; padding:9px; border-radius:var(--r-sm); border:none;
+  font-family:var(--font); font-size:0.88rem; font-weight:700;
+  cursor:pointer; transition:all var(--t); color:var(--text2); background:transparent;
+}
+.auth-tab.active { background:var(--surface); color:var(--accent); box-shadow:var(--sh-sm); }
+.form-group { margin-bottom:14px; }
+.form-label { display:block; font-size:0.8rem; font-weight:700; color:var(--text2); margin-bottom:6px; }
+.form-input {
+  width:100%; background:var(--surface2); border:1.5px solid var(--border);
+  border-radius:var(--r-md); padding:12px 14px;
+  color:var(--text); font-family:var(--font); font-size:0.92rem;
+  transition:all var(--t);
+}
+.form-input:focus { outline:none; border-color:var(--accent); background:var(--surface); box-shadow:0 0 0 3px var(--accent-soft); }
+.form-select {
+  width:100%; background:var(--surface2); border:1.5px solid var(--border);
+  border-radius:var(--r-md); padding:12px 14px;
+  color:var(--text); font-family:var(--font); font-size:0.92rem;
+  cursor:pointer; transition:all var(--t);
+}
+.form-select:focus { outline:none; border-color:var(--accent); }
+.btn-auth {
+  width:100%; padding:14px; border-radius:var(--r-md); border:none;
+  background:linear-gradient(135deg,#2563EB,#1D4ED8); color:#fff;
+  font-family:var(--font); font-size:0.95rem; font-weight:800;
+  cursor:pointer; transition:all var(--t); margin-top:8px;
+  box-shadow:0 4px 16px rgba(37,99,235,0.35);
+}
+.btn-auth:hover { transform:translateY(-1px); box-shadow:0 6px 24px rgba(37,99,235,0.45); }
+.btn-auth:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+.auth-error {
+  background:var(--red-light); border:1px solid rgba(220,38,38,0.3);
+  color:var(--red); border-radius:var(--r-md); padding:10px 14px;
+  font-size:0.85rem; margin-bottom:14px; display:none;
+}
+.auth-error.show { display:block; }
+.role-pills { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+.role-pill {
+  padding:10px; border-radius:var(--r-md); border:1.5px solid var(--border);
+  cursor:pointer; text-align:center; transition:all var(--t);
+  background:var(--surface2);
+}
+.role-pill.selected { border-color:var(--accent); background:var(--accent-light); }
+.role-pill-icon { font-size:1.2rem; margin-bottom:3px; }
+.role-pill-name { font-size:0.78rem; font-weight:700; color:var(--text2); }
+.role-pill.selected .role-pill-name { color:var(--accent); }
+
+/* ══ APP SHELL ══ */
+#appShell { display:none; min-height:100vh; }
+
+/* ══ SIDEBAR ══ */
+.sidebar {
+  width:var(--sidebar-w); background:var(--sidebar);
+  position:fixed; top:0; right:0; bottom:0;
+  display:flex; flex-direction:column; z-index:300;
+  transition:transform var(--t);
+}
+.sidebar-logo {
+  padding:22px 18px 18px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  display:flex; align-items:center; gap:10px;
+}
+.sidebar-logo-icon {
+  width:36px; height:36px; border-radius:10px;
+  background:linear-gradient(135deg,#2563EB,#7C3AED);
+  display:flex; align-items:center; justify-content:center; font-size:1rem;
+}
+.sidebar-logo-text { font-size:1.1rem; font-weight:900; color:#fff; }
+.sidebar-logo-version { font-size:0.62rem; color:#4A5568; font-family:var(--mono); }
+
+.sidebar-user {
+  margin:14px 12px;
+  background:rgba(255,255,255,0.05); border-radius:var(--r-md);
+  padding:12px; display:flex; align-items:center; gap:10px;
+}
+.user-avatar {
+  width:36px; height:36px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.9rem; font-weight:800; color:#fff; flex-shrink:0;
+}
+.user-name { font-size:0.85rem; font-weight:700; color:#fff; }
+.user-role-badge {
+  font-size:0.65rem; padding:2px 8px; border-radius:20px;
+  font-family:var(--mono); font-weight:700; display:inline-block; margin-top:2px;
+}
+
+.sidebar-nav { flex:1; padding:8px 10px; overflow-y:auto; }
+.nav-label {
+  font-size:0.62rem; font-weight:700; color:#4A5568;
+  letter-spacing:1.5px; text-transform:uppercase;
+  padding:0 8px; margin:14px 0 6px;
+}
+.nav-item {
+  display:flex; align-items:center; gap:11px;
+  padding:10px 12px; border-radius:var(--r-sm);
+  cursor:pointer; transition:all var(--t);
+  color:#8892B0; font-size:0.88rem; font-weight:600;
+  position:relative; margin-bottom:2px;
+}
+.nav-item:hover { background:rgba(255,255,255,0.06); color:#fff; }
+.nav-item.active { background:rgba(37,99,235,0.2); color:#60A5FA; }
+.nav-item.active::after {
+  content:''; position:absolute; right:0; top:20%; bottom:20%;
+  width:3px; border-radius:2px 0 0 2px; background:#2563EB;
+}
+.nav-icon { font-size:0.95rem; width:18px; text-align:center; }
+.nav-badge {
+  margin-right:auto; background:#DC2626; color:#fff;
+  font-size:0.62rem; font-weight:800; padding:2px 7px;
+  border-radius:20px; font-family:var(--mono);
+}
+.chat-badge {
+  margin-right:auto; background:#2563EB; color:#fff;
+  font-size:0.62rem; font-weight:800; padding:2px 7px;
+  border-radius:20px; font-family:var(--mono); animation:pulse 2s infinite;
+}
+
+.sidebar-footer {
+  padding:14px 10px;
+  border-top:1px solid rgba(255,255,255,0.06);
+}
+.logout-btn {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 12px; border-radius:var(--r-sm);
+  cursor:pointer; color:#8892B0; font-size:0.85rem; font-weight:600;
+  transition:all var(--t);
+}
+.logout-btn:hover { background:rgba(220,38,38,0.15); color:#F87171; }
+
+/* ══ MAIN ══ */
+.main { margin-right:var(--sidebar-w); display:flex; flex-direction:column; min-height:100vh; }
+
+/* ══ TOPBAR ══ */
+.topbar {
+  height:60px; background:var(--surface);
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 24px; position:sticky; top:0; z-index:200;
+  box-shadow:var(--sh-sm);
+}
+.topbar-left { display:flex; align-items:center; gap:12px; }
+.topbar-title { font-size:1rem; font-weight:800; }
+.topbar-breadcrumb { font-size:0.8rem; color:var(--muted); }
+.lang-toggle {
+  display:flex; background:var(--surface2); border-radius:var(--r-sm);
+  border:1px solid var(--border); overflow:hidden;
+}
+.lang-btn {
+  padding:6px 12px; font-size:0.78rem; font-weight:700;
+  cursor:pointer; transition:all var(--t); color:var(--text2); border:none;
+  background:transparent; font-family:var(--font);
+}
+.lang-btn.active { background:var(--accent); color:#fff; }
+.topbar-right { display:flex; align-items:center; gap:10px; }
+.icon-btn {
+  width:34px; height:34px; border-radius:var(--r-sm);
+  display:flex; align-items:center; justify-content:center;
+  border:1px solid var(--border); background:var(--surface2);
+  cursor:pointer; font-size:0.9rem; transition:all var(--t);
+}
+.icon-btn:hover { background:var(--accent); border-color:var(--accent); }
+.notif-dot {
+  position:relative;
+}
+.notif-dot::after {
+  content:''; position:absolute; top:6px; left:6px;
+  width:8px; height:8px; border-radius:50%;
+  background:#DC2626; border:2px solid var(--surface);
+}
+
+/* ══ PAGES ══ */
+.page { display:none; padding:24px; animation:fadeUp 0.25s ease; }
+.page.active { display:block; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+/* ══ KPI GRID ══ */
+.kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
+.kpi-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-lg); padding:18px;
+  box-shadow:var(--sh-sm); cursor:pointer; transition:all var(--t);
+  position:relative; overflow:hidden;
+}
+.kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+.kpi-card.blue::before { background:linear-gradient(90deg,#2563EB,#60A5FA); }
+.kpi-card.green::before { background:linear-gradient(90deg,#059669,#34D399); }
+.kpi-card.orange::before { background:linear-gradient(90deg,#D97706,#FBBF24); }
+.kpi-card.red::before { background:linear-gradient(90deg,#DC2626,#F87171); }
+.kpi-card:hover { transform:translateY(-2px); box-shadow:var(--sh-md); }
+.kpi-row { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+.kpi-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+.kpi-icon.blue { background:var(--accent-soft); }
+.kpi-icon.green { background:var(--green-light); }
+.kpi-icon.orange { background:var(--orange-light); }
+.kpi-icon.red { background:var(--red-light); }
+.kpi-change { font-size:0.72rem; font-weight:700; font-family:var(--mono); padding:3px 8px; border-radius:20px; }
+.kpi-change.up { background:var(--green-light); color:var(--green); }
+.kpi-change.warn { background:var(--orange-light); color:var(--orange); }
+.kpi-change.down { background:var(--red-light); color:var(--red); }
+.kpi-val { font-size:1.8rem; font-weight:900; font-family:var(--mono); letter-spacing:-1px; }
+.kpi-val.blue { color:var(--accent); }
+.kpi-val.green { color:var(--green); }
+.kpi-val.orange { color:var(--orange); }
+.kpi-val.red { color:var(--red); }
+.kpi-lbl { font-size:0.8rem; color:var(--muted); margin-top:3px; font-weight:500; }
+
+/* ══ ALERT BANNER ══ */
+.alert-banner {
+  background:linear-gradient(135deg,#FFFBEB,#FEF3C7);
+  border:1px solid #F59E0B; border-radius:var(--r-md);
+  padding:12px 16px; margin-bottom:20px;
+  display:none; align-items:center; gap:12px;
+}
+.alert-banner.show { display:flex; }
+.alert-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:5px; }
+.alert-chip {
+  background:rgba(220,38,38,0.1); border:1px solid rgba(220,38,38,0.25);
+  color:var(--red); padding:2px 9px; border-radius:20px;
+  font-size:0.73rem; font-family:var(--mono); font-weight:600;
+}
+
+/* ══ DASH GRID ══ */
+.dash-grid { display:grid; grid-template-columns:1fr 320px; gap:18px; }
+.card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-lg); padding:18px; box-shadow:var(--sh-sm);
+}
+.card-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.card-title { font-size:0.9rem; font-weight:800; }
+.card-link { font-size:0.78rem; color:var(--accent); cursor:pointer; font-weight:700; padding:4px 10px; border-radius:var(--r-sm); background:var(--accent-light); }
+.card-link:hover { background:var(--accent); color:#fff; }
+
+/* Mini Table */
+.mtable { width:100%; border-collapse:collapse; }
+.mtable th { text-align:right; font-size:0.7rem; font-weight:700; color:var(--muted); letter-spacing:0.5px; text-transform:uppercase; padding:8px 10px; border-bottom:1px solid var(--border); background:var(--surface2); }
+.mtable td { padding:11px 10px; font-size:0.84rem; border-bottom:1px solid var(--border); }
+.mtable tr:last-child td { border-bottom:none; }
+.mtable tr:hover td { background:var(--surface2); }
+
+/* Status pill */
+.spill { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:20px; font-size:0.72rem; font-weight:700; font-family:var(--mono); }
+.spill.ok { background:var(--green-light); color:var(--green); }
+.spill.low { background:var(--orange-light); color:var(--orange); }
+.spill.critical { background:var(--red-light); color:var(--red); animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+.sdot { width:5px; height:5px; border-radius:50%; background:currentColor; }
+
+/* Donut */
+.donut-wrap { display:flex; align-items:center; gap:16px; }
+.dlegend { flex:1; display:flex; flex-direction:column; gap:9px; }
+.dleg-row { display:flex; align-items:center; gap:7px; font-size:0.8rem; }
+.dleg-dot { width:8px; height:8px; border-radius:2px; flex-shrink:0; }
+.dleg-name { flex:1; color:var(--text2); }
+.dleg-pct { font-family:var(--mono); font-weight:700; font-size:0.76rem; }
+
+/* ══ PRODUCTS ══ */
+.page-hdr { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
+.page-ttl { font-size:1.3rem; font-weight:900; letter-spacing:-0.3px; }
+.page-sub { font-size:0.82rem; color:var(--muted); margin-top:2px; }
+.toolbar { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+.srch-wrap { flex:1; min-width:180px; position:relative; }
+.srch-ic { position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--muted); }
+.srch-inp {
+  width:100%; background:var(--surface); border:1.5px solid var(--border);
+  border-radius:var(--r-md); padding:9px 36px 9px 14px;
+  color:var(--text); font-family:var(--font); font-size:0.85rem;
+  transition:all var(--t);
+}
+.srch-inp:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+.srch-inp::placeholder { color:var(--muted); }
+.filt-sel {
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:var(--r-md); padding:9px 12px;
+  color:var(--text); font-family:var(--font); font-size:0.85rem;
+  cursor:pointer; min-width:130px;
+}
+.filt-sel:focus { outline:none; border-color:var(--accent); }
+
+.btn { display:inline-flex; align-items:center; gap:6px; padding:9px 16px; border-radius:var(--r-md); border:none; cursor:pointer; font-family:var(--font); font-size:0.85rem; font-weight:700; transition:all var(--t); white-space:nowrap; }
+.btn-primary { background:var(--accent); color:#fff; box-shadow:0 2px 8px rgba(37,99,235,0.25); }
+.btn-primary:hover { background:#1D4ED8; transform:translateY(-1px); box-shadow:0 4px 16px rgba(37,99,235,0.35); }
+.btn-ghost { background:var(--surface2); color:var(--text2); border:1px solid var(--border); }
+.btn-ghost:hover { background:var(--surface); color:var(--text); border-color:var(--border2); }
+.btn-danger { background:var(--red-light); color:var(--red); border:1px solid rgba(220,38,38,0.2); }
+.btn-danger:hover { background:#FEE2E2; }
+.btn-sm { padding:6px 11px; font-size:0.78rem; }
+
+.tbl-wrap { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); overflow:hidden; box-shadow:var(--sh-sm); }
+.dtable { width:100%; border-collapse:collapse; }
+.dtable thead tr { background:var(--surface2); border-bottom:1px solid var(--border); }
+.dtable th { text-align:right; padding:12px 14px; font-size:0.7rem; font-weight:700; color:var(--muted); letter-spacing:0.8px; text-transform:uppercase; }
+.dtable td { padding:13px 14px; font-size:0.85rem; border-bottom:1px solid var(--border); transition:background var(--t); }
+.dtable tr:last-child td { border-bottom:none; }
+.dtable tbody tr:hover td { background:var(--surface2); }
+.prod-name { font-weight:700; }
+.cat-tag { background:var(--purple-light); color:var(--purple); padding:3px 9px; border-radius:20px; font-size:0.73rem; font-weight:700; }
+.qty-num { font-family:var(--mono); font-weight:800; font-size:0.92rem; }
+.price-num { font-family:var(--mono); font-size:0.85rem; }
+.prog-bar { margin-top:4px; height:3px; background:var(--surface2); border-radius:2px; overflow:hidden; width:70px; }
+.prog-fill { height:100%; border-radius:2px; transition:width 0.8s ease; }
+.act-cell { display:flex; gap:6px; }
+
+/* Empty */
+.empty { text-align:center; padding:56px 20px; color:var(--muted); }
+.empty-ic { font-size:3rem; margin-bottom:10px; opacity:0.4; }
+.empty-tt { font-size:0.95rem; font-weight:700; color:var(--text2); margin-bottom:5px; }
+
+/* ══ MODAL ══ */
+.overlay { position:fixed; inset:0; background:rgba(15,21,35,0.55); backdrop-filter:blur(10px); z-index:1000; display:none; align-items:center; justify-content:center; padding:20px; }
+.overlay.open { display:flex; animation:fadeUp 0.2s ease; }
+.modal { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-xl); padding:26px; width:100%; max-width:480px; box-shadow:var(--sh-xl); max-height:90vh; overflow-y:auto; }
+.modal-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; }
+.modal-ttl { font-size:1.1rem; font-weight:800; }
+.modal-x { width:30px; height:30px; border-radius:50%; background:var(--surface2); border:none; cursor:pointer; font-size:0.9rem; color:var(--muted); display:flex; align-items:center; justify-content:center; transition:all var(--t); }
+.modal-x:hover { background:var(--red-light); color:var(--red); }
+.form-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.fg { display:flex; flex-direction:column; gap:5px; }
+.fg.full { grid-column:1/-1; }
+.flbl { font-size:0.78rem; font-weight:700; color:var(--text2); }
+.finp { background:var(--surface2); border:1.5px solid var(--border); border-radius:var(--r-md); padding:10px 12px; color:var(--text); font-family:var(--font); font-size:0.88rem; transition:all var(--t); width:100%; }
+.finp:focus { outline:none; border-color:var(--accent); background:var(--surface); box-shadow:0 0 0 3px var(--accent-soft); }
+.fhint { font-size:0.7rem; color:var(--muted); }
+.modal-acts { display:flex; gap:10px; justify-content:flex-end; margin-top:18px; }
+
+/* ══ TEAM CHAT ══ */
+.chat-layout { display:grid; grid-template-columns:240px 1fr; gap:18px; height:calc(100vh - 110px); }
+.chat-rooms { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); overflow:hidden; box-shadow:var(--sh-sm); }
+.chat-rooms-hdr { padding:14px 16px; border-bottom:1px solid var(--border); background:var(--surface2); }
+.chat-rooms-ttl { font-size:0.82rem; font-weight:800; color:var(--text2); letter-spacing:0.3px; }
+.chat-room-item { display:flex; align-items:center; gap:10px; padding:12px 16px; cursor:pointer; transition:all var(--t); border-bottom:1px solid var(--border); }
+.chat-room-item:hover { background:var(--surface2); }
+.chat-room-item.active { background:var(--accent-light); border-left:3px solid var(--accent); }
+.room-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+.room-name { font-size:0.85rem; font-weight:700; }
+.room-last { font-size:0.72rem; color:var(--muted); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px; }
+.online-users { padding:14px 16px; border-top:1px solid var(--border); }
+.online-ttl { font-size:0.7rem; font-weight:700; color:var(--muted); letter-spacing:0.5px; text-transform:uppercase; margin-bottom:8px; }
+.online-list { display:flex; flex-direction:column; gap:6px; }
+.online-user { display:flex; align-items:center; gap:8px; font-size:0.8rem; }
+.online-dot { width:7px; height:7px; border-radius:50%; background:var(--green); flex-shrink:0; }
+
+.chat-main { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); display:flex; flex-direction:column; overflow:hidden; box-shadow:var(--sh-sm); }
+.chat-hdr { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; background:var(--surface2); }
+.chat-hdr-icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+.chat-hdr-name { font-size:0.9rem; font-weight:800; }
+.chat-hdr-desc { font-size:0.75rem; color:var(--muted); }
+.chat-msgs { flex:1; overflow-y:auto; padding:18px; display:flex; flex-direction:column; gap:12px; scroll-behavior:smooth; }
+.chat-msgs::-webkit-scrollbar { width:4px; }
+.chat-msgs::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+.cmsg { display:flex; gap:9px; }
+.cmsg.me { flex-direction:row-reverse; }
+.cmsg-av { width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:800; color:#fff; flex-shrink:0; }
+.cmsg-body { max-width:68%; }
+.cmsg-meta { font-size:0.7rem; color:var(--muted); margin-bottom:3px; display:flex; align-items:center; gap:6px; }
+.cmsg.me .cmsg-meta { flex-direction:row-reverse; }
+.cmsg-name { font-weight:700; color:var(--text2); }
+.cmsg-time { }
+.cmsg-bubble { padding:10px 14px; border-radius:14px; font-size:0.86rem; line-height:1.55; }
+.cmsg.other .cmsg-bubble { background:var(--surface2); border:1px solid var(--border); border-radius:4px 14px 14px 14px; }
+.cmsg.me .cmsg-bubble { background:var(--accent); color:#fff; border-radius:14px 4px 14px 14px; }
+.chat-inp-bar { padding:12px 16px; border-top:1px solid var(--border); display:flex; gap:10px; background:var(--surface2); }
+.chat-textarea { flex:1; background:var(--surface); border:1.5px solid var(--border); border-radius:var(--r-md); padding:10px 14px; color:var(--text); font-family:var(--font); font-size:0.86rem; resize:none; max-height:100px; transition:border-color var(--t); }
+.chat-textarea:focus { outline:none; border-color:var(--accent); }
+.chat-send { width:40px; height:40px; border-radius:var(--r-md); border:none; background:var(--accent); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.95rem; transition:all var(--t); flex-shrink:0; }
+.chat-send:hover { background:#1D4ED8; transform:scale(1.05); }
+
+/* ══ AI CHAT ══ */
+.ai-layout { display:grid; grid-template-columns:1fr 280px; gap:18px; height:calc(100vh - 110px); }
+.ai-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); overflow:hidden; display:flex; flex-direction:column; box-shadow:var(--sh-sm); }
+.ai-hdr { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; background:var(--surface2); }
+.ai-orb { width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,#2563EB,#7C3AED); display:flex; align-items:center; justify-content:center; font-size:1.1rem; position:relative; flex-shrink:0; }
+.ai-orb::after { content:''; position:absolute; bottom:1px; left:1px; width:10px; height:10px; border-radius:50%; background:var(--green); border:2px solid var(--surface2); }
+.ai-msgs { flex:1; overflow-y:auto; padding:18px; display:flex; flex-direction:column; gap:12px; scroll-behavior:smooth; }
+.ai-msgs::-webkit-scrollbar { width:4px; }
+.ai-msgs::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+.amsg { display:flex; gap:9px; }
+.amsg.user { flex-direction:row-reverse; }
+.amsg-av { width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0; }
+.amsg.ai .amsg-av { background:linear-gradient(135deg,#2563EB,#7C3AED); }
+.amsg.user .amsg-av { background:var(--surface2); border:1px solid var(--border); }
+.amsg-content { max-width:75%; }
+.amsg-bubble { padding:11px 14px; border-radius:14px; font-size:0.86rem; line-height:1.6; }
+.amsg.ai .amsg-bubble { background:var(--surface2); border:1px solid var(--border); border-radius:4px 14px 14px 14px; }
+.amsg.user .amsg-bubble { background:var(--accent); color:#fff; border-radius:14px 4px 14px 14px; }
+.amsg-time { font-size:0.68rem; color:var(--muted); margin-top:3px; padding:0 2px; }
+.amsg.user .amsg-time { text-align:left; }
+.typing-dots { display:flex; gap:4px; align-items:center; padding:2px 0; }
+.typing-dots span { width:6px; height:6px; border-radius:50%; background:var(--muted); animation:tdot 1.2s infinite; }
+.typing-dots span:nth-child(2) { animation-delay:0.15s; }
+.typing-dots span:nth-child(3) { animation-delay:0.3s; }
+@keyframes tdot { 0%,60%,100%{transform:scale(0.7);opacity:0.5} 30%{transform:scale(1.1);opacity:1} }
+.ai-inp-bar { padding:12px 16px; border-top:1px solid var(--border); display:flex; gap:10px; background:var(--surface2); }
+.ai-textarea { flex:1; background:var(--surface); border:1.5px solid var(--border); border-radius:var(--r-md); padding:10px 14px; color:var(--text); font-family:var(--font); font-size:0.86rem; resize:none; max-height:100px; transition:border-color var(--t); }
+.ai-textarea:focus { outline:none; border-color:var(--accent); }
+.ai-send { width:40px; height:40px; border-radius:var(--r-md); border:none; background:var(--accent); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.95rem; transition:all var(--t); flex-shrink:0; }
+.ai-send:hover { background:#1D4ED8; transform:scale(1.05); }
+.ai-send:disabled { background:var(--surface2); color:var(--muted); transform:none; cursor:not-allowed; }
+.ai-sidebar { display:flex; flex-direction:column; gap:14px; overflow-y:auto; }
+.ai-side-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:14px; box-shadow:var(--sh-sm); }
+.ai-side-ttl { font-size:0.7rem; font-weight:800; color:var(--muted); letter-spacing:0.8px; text-transform:uppercase; margin-bottom:10px; }
+.qpill { background:var(--surface2); border:1.5px solid var(--border); border-radius:var(--r-md); padding:9px 11px; font-size:0.8rem; font-family:var(--font); cursor:pointer; color:var(--text2); font-weight:600; transition:all var(--t); display:flex; align-items:center; gap:7px; margin-bottom:6px; }
+.qpill:hover { background:var(--accent-light); border-color:var(--accent); color:var(--accent); }
+.insight-item { display:flex; gap:9px; padding:9px 0; border-bottom:1px solid var(--border); }
+.insight-item:last-child { border-bottom:none; padding-bottom:0; }
+.ins-ic { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0; }
+.ins-text { font-size:0.78rem; color:var(--text2); line-height:1.5; }
+.ins-text strong { color:var(--text); display:block; font-size:0.8rem; margin-bottom:1px; }
+
+/* ══ ANALYTICS ══ */
+.analytics-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+.achart { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:18px; box-shadow:var(--sh-sm); }
+.achart.full { grid-column:1/-1; }
+.achart-ttl { font-size:0.88rem; font-weight:800; margin-bottom:3px; }
+.achart-sub { font-size:0.75rem; color:var(--muted); margin-bottom:16px; }
+.bar-list { display:flex; flex-direction:column; gap:11px; }
+.bar-item-meta { display:flex; justify-content:space-between; margin-bottom:4px; }
+.bar-item-name { font-size:0.8rem; font-weight:600; }
+.bar-item-val { font-size:0.78rem; font-family:var(--mono); color:var(--muted); }
+.bar-track { height:8px; background:var(--surface2); border-radius:4px; overflow:hidden; }
+.bar-fill-a { height:100%; border-radius:4px; transition:width 1s cubic-bezier(0.4,0,0.2,1); }
+.score-box { background:var(--surface2); border-radius:var(--r-md); padding:14px; margin-top:16px; text-align:center; }
+.score-val { font-size:2rem; font-weight:900; font-family:var(--mono); }
+.score-lbl { font-size:0.75rem; color:var(--muted); margin-top:2px; }
+
+/* ══ TEAM MANAGEMENT ══ */
+.team-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.team-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:18px; box-shadow:var(--sh-sm); text-align:center; transition:all var(--t); }
+.team-card:hover { transform:translateY(-2px); box-shadow:var(--sh-md); }
+.team-av { width:56px; height:56px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; font-weight:900; color:#fff; margin:0 auto 12px; }
+.team-name { font-size:0.95rem; font-weight:800; margin-bottom:4px; }
+.team-email { font-size:0.78rem; color:var(--muted); margin-bottom:8px; }
+.role-tag { display:inline-block; padding:4px 12px; border-radius:20px; font-size:0.72rem; font-weight:800; font-family:var(--mono); }
+.role-admin { background:var(--purple-light); color:var(--purple); }
+.role-manager { background:var(--accent-soft); color:var(--accent); }
+.role-caissier { background:var(--green-light); color:var(--green); }
+.role-livreur { background:var(--orange-light); color:var(--orange); }
+.team-actions { display:flex; gap:8px; justify-content:center; margin-top:12px; }
+
+/* ══ TOAST ══ */
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); padding:11px 20px; border-radius:var(--r-md); font-size:0.86rem; font-weight:700; z-index:9999; transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1); white-space:nowrap; pointer-events:none; box-shadow:var(--sh-lg); }
+.toast.show { transform:translateX(-50%) translateY(0); }
+.toast.s { background:var(--green); color:#fff; }
+.toast.e { background:var(--red); color:#fff; }
+.toast.i { background:var(--accent); color:#fff; }
+
+/* ══ LOADING ══ */
+.loading-bar { position:fixed; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,#2563EB,#7C3AED,#2563EB); background-size:200%; z-index:9999; display:none; animation:lmove 1.2s linear infinite; }
+.loading-bar.show { display:block; }
+@keyframes lmove { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+/* ══ MOBILE ══ */
+.bnav { display:none; position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-top:1px solid var(--border); z-index:200; box-shadow:0 -4px 20px rgba(15,21,35,0.07); }
+.bnav-items { display:flex; justify-content:space-around; padding:6px 0; }
+.bnav-item { display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; padding:4px 14px; color:var(--muted); font-size:0.62rem; font-weight:700; transition:all var(--t); }
+.bnav-item.active { color:var(--accent); }
+.bnav-icon { font-size:1.2rem; }
+
+@media(max-width:1024px) {
+  .kpi-grid { grid-template-columns:repeat(2,1fr); }
+  .dash-grid { grid-template-columns:1fr; }
+  .analytics-grid { grid-template-columns:1fr; }
+  .ai-layout { grid-template-columns:1fr; height:auto; }
+  .ai-sidebar { display:none; }
+  .chat-layout { grid-template-columns:1fr; height:auto; }
+  .chat-rooms { display:none; }
+  .team-grid { grid-template-columns:repeat(2,1fr); }
+}
+@media(max-width:768px) {
+  .sidebar { transform:translateX(100%); }
+  .sidebar.open { transform:translateX(0); box-shadow:var(--sh-xl); }
+  .main { margin-right:0; }
+  .topbar { padding:0 14px; }
+  .page { padding:14px; padding-bottom:76px; }
+  .bnav { display:block; }
+  .lang-toggle { display:none; }
+  .dtable th:nth-child(3),.dtable td:nth-child(3),.dtable th:nth-child(5),.dtable td:nth-child(5) { display:none; }
+  .team-grid { grid-template-columns:1fr 1fr; }
+}
+@media(max-width:480px) {
+  .kpi-grid { grid-template-columns:repeat(2,1fr); gap:10px; }
+  .kpi-val { font-size:1.4rem; }
+  .form-grid2 { grid-template-columns:1fr; }
+  .team-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="loading-bar" id="loadingBar"></div>
+<div class="toast" id="toast"></div>
+
+<!-- ══ AUTH SCREEN ══ -->
+<div id="authScreen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">📦</div>
+      <div class="auth-logo-text">Stock<span>AI</span> Pro</div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')" id="tab-login">تسجيل الدخول / Connexion</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')" id="tab-register">حساب جديد / Inscription</button>
+    </div>
+    <div id="authError" class="auth-error"></div>
+
+    <!-- LOGIN -->
+    <div id="loginForm">
+      <div class="form-group">
+        <label class="form-label">البريد الإلكتروني / Email</label>
+        <input class="form-input" id="loginEmail" type="email" placeholder="exemple@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">كلمة السر / Mot de passe</label>
+        <input class="form-input" id="loginPassword" type="password" placeholder="••••••••">
+      </div>
+      <button class="btn-auth" id="loginBtn" onclick="doLogin()">
+        🔐 دخول / Connexion
+      </button>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="registerForm" style="display:none">
+      <div class="form-group">
+        <label class="form-label">الاسم الكامل / Nom complet</label>
+        <input class="form-input" id="regName" placeholder="محمد بن علي / Mohamed Ben Ali">
+      </div>
+      <div class="form-group">
+        <label class="form-label">البريد الإلكتروني / Email</label>
+        <input class="form-input" id="regEmail" type="email" placeholder="exemple@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">كلمة السر / Mot de passe</label>
+        <input class="form-input" id="regPassword" type="password" placeholder="8 أحرف على الأقل">
+      </div>
+      <div class="form-group">
+        <label class="form-label">الدور / Rôle</label>
+        <div class="role-pills">
+          <div class="role-pill selected" onclick="selectRole('admin',this)">
+            <div class="role-pill-icon">👑</div>
+            <div class="role-pill-name">Admin</div>
+          </div>
+          <div class="role-pill" onclick="selectRole('manager',this)">
+            <div class="role-pill-icon">📊</div>
+            <div class="role-pill-name">Manager</div>
+          </div>
+          <div class="role-pill" onclick="selectRole('caissier',this)">
+            <div class="role-pill-icon">💰</div>
+            <div class="role-pill-name">Caissier</div>
+          </div>
+          <div class="role-pill" onclick="selectRole('livreur',this)">
+            <div class="role-pill-icon">🚚</div>
+            <div class="role-pill-name">Livreur</div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-auth" id="regBtn" onclick="doRegister()">
+        ✨ إنشاء حساب / Créer un compte
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP SHELL ══ -->
+<div id="appShell">
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">📦</div>
+      <div>
+        <div class="sidebar-logo-text">StockAI Pro</div>
+        <div class="sidebar-logo-version">v2.0 • Multi-user</div>
+      </div>
+    </div>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="sideUserAv"></div>
+      <div>
+        <div class="user-name" id="sideUserName">—</div>
+        <div class="user-role-badge" id="sideUserRole"></div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-label">القائمة / Menu</div>
+      <div class="nav-item active" onclick="goTo('dashboard',this)" id="nav-dashboard"><span class="nav-icon">⚡</span> <span data-ar="لوحة التحكم" data-fr="Tableau de bord"></span></div>
+      <div class="nav-item" onclick="goTo('products',this)" id="nav-products"><span class="nav-icon">📦</span> <span data-ar="المنتجات" data-fr="Produits"></span><span class="nav-badge" id="navAlertBadge" style="display:none">!</span></div>
+      <div class="nav-item" onclick="goTo('analytics',this)" id="nav-analytics"><span class="nav-icon">📊</span> <span data-ar="التحليلات" data-fr="Analytiques"></span></div>
+      <div class="nav-label">الفريق / Équipe</div>
+      <div class="nav-item" onclick="goTo('chat',this)" id="nav-chat"><span class="nav-icon">💬</span> <span data-ar="دردشة الفريق" data-fr="Chat équipe"></span><span class="chat-badge" id="chatBadge" style="display:none">●</span></div>
+      <div class="nav-item" onclick="goTo('team',this)" id="nav-team" style="display:none"><span class="nav-icon">👥</span> <span data-ar="إدارة الفريق" data-fr="Gestion équipe"></span></div>
+      <div class="nav-label">الذكاء الاصطناعي / IA</div>
+      <div class="nav-item" onclick="goTo('ai',this)" id="nav-ai"><span class="nav-icon">🤖</span> <span data-ar="مساعد AI" data-fr="Assistant IA"></span></div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="logout-btn" onclick="doLogout()">
+        <span>🚪</span> <span data-ar="خروج" data-fr="Déconnexion"></span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="icon-btn" onclick="toggleSidebar()" id="menuBtn" style="display:none">☰</div>
+        <div>
+          <div class="topbar-title" id="topTitle">—</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="lang-toggle">
+          <button class="lang-btn active" onclick="setLang('ar')" id="langAr">AR</button>
+          <button class="lang-btn" onclick="setLang('fr')" id="langFr">FR</button>
+        </div>
+        <div class="icon-btn notif-dot" id="notifBtn" onclick="goTo('products',null)" title="تنبيهات"></div>
+        <div class="user-avatar" id="topUserAv" style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:800;color:#fff;cursor:pointer"></div>
+      </div>
+    </header>
+
+    <!-- PAGES -->
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div style="margin-bottom:22px">
+        <h2 id="dashGreeting" style="font-size:1.4rem;font-weight:900;letter-spacing:-0.3px"></h2>
+        <p id="dashDate" style="font-size:0.85rem;color:var(--muted);margin-top:3px"></p>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi-card blue" onclick="goTo('products',null)">
+          <div class="kpi-row"><div class="kpi-icon blue">📦</div><span class="kpi-change up" id="kpiTrendTotal">+0</span></div>
+          <div class="kpi-val blue" id="kpiTotal">0</div><div class="kpi-lbl" data-ar="إجمالي المنتجات" data-fr="Total produits"></div>
+        </div>
+        <div class="kpi-card green" onclick="goTo('analytics',null)">
+          <div class="kpi-row"><div class="kpi-icon green">💰</div><span class="kpi-change up">TND</span></div>
+          <div class="kpi-val green" id="kpiValue">0</div><div class="kpi-lbl" data-ar="قيمة المخزون" data-fr="Valeur du stock"></div>
+        </div>
+        <div class="kpi-card orange">
+          <div class="kpi-row"><div class="kpi-icon orange">⚠️</div><span class="kpi-change warn" data-ar="منخفض" data-fr="Bas"></span></div>
+          <div class="kpi-val orange" id="kpiLow">0</div><div class="kpi-lbl" data-ar="يحتاج تموين" data-fr="À réapprovisionner"></div>
+        </div>
+        <div class="kpi-card red">
+          <div class="kpi-row"><div class="kpi-icon red">🚨</div><span class="kpi-change down" data-ar="حرج" data-fr="Critique"></span></div>
+          <div class="kpi-val red" id="kpiCrit">0</div><div class="kpi-lbl" data-ar="حرج / صفر" data-fr="Critique / Zéro"></div>
+        </div>
+      </div>
+      <div class="alert-banner" id="alertBanner">
+        <div style="font-size:1.2rem;flex-shrink:0">⚠️</div>
+        <div style="flex:1">
+          <strong style="font-size:0.85rem;color:#92400E" data-ar="منتجات تحتاج تموين فوري!" data-fr="Produits à réapprovisionner!"></strong>
+          <div class="alert-chips" id="alertChips"></div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="goTo('ai',null);setTimeout(()=>askAI('أعطني خطة تموين فورية للمنتجات الحرجة'),300)" data-ar="🤖 اسأل AI" data-fr="🤖 Demander IA"></button>
+      </div>
+      <div class="dash-grid">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title" data-ar="آخر المنتجات" data-fr="Derniers produits"></div>
+            <div class="card-link" onclick="goTo('products',null)" data-ar="عرض الكل" data-fr="Voir tout"></div>
+          </div>
+          <table class="mtable"><thead><tr>
+            <th data-ar="المنتج" data-fr="Produit"></th>
+            <th data-ar="الكمية" data-fr="Quantité"></th>
+            <th data-ar="الحالة" data-fr="État"></th>
+          </tr></thead><tbody id="dashRecent"></tbody></table>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title" data-ar="توزيع الفئات" data-fr="Répartition catégories"></div></div>
+          <div id="donutWrap"><div style="color:var(--muted);font-size:0.84rem;text-align:center;padding:20px" data-ar="لا توجد بيانات بعد" data-fr="Pas de données"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div class="page" id="page-products">
+      <div class="page-hdr">
+        <div>
+          <div class="page-ttl" data-ar="المنتجات" data-fr="Produits"></div>
+          <div class="page-sub" id="prodCount">—</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal()" id="addProdBtn"><span>+</span> <span data-ar="إضافة منتج" data-fr="Ajouter produit"></span></button>
+      </div>
+      <div class="toolbar">
+        <div class="srch-wrap">
+          <span class="srch-ic">🔍</span>
+          <input class="srch-inp" id="searchInput" oninput="renderProducts()" placeholder="">
+        </div>
+        <select class="filt-sel" id="catFilter" onchange="renderProducts()"><option value="" data-ar="كل الفئات" data-fr="Toutes catégories"></option></select>
+        <select class="filt-sel" id="statusFilter" onchange="renderProducts()">
+          <option value="" data-ar="كل الحالات" data-fr="Tous états"></option>
+          <option value="ok" data-ar="✅ جيد" data-fr="✅ Bon"></option>
+          <option value="low" data-ar="⚠️ منخفض" data-fr="⚠️ Bas"></option>
+          <option value="critical" data-ar="🚨 حرج" data-fr="🚨 Critique"></option>
+        </select>
+      </div>
+      <div class="tbl-wrap">
+        <table class="dtable">
+          <thead><tr>
+            <th data-ar="المنتج" data-fr="Produit"></th>
+            <th data-ar="الفئة" data-fr="Catégorie"></th>
+            <th data-ar="السعر" data-fr="Prix"></th>
+            <th data-ar="المخزون" data-fr="Stock"></th>
+            <th data-ar="الحد الأدنى" data-fr="Seuil min"></th>
+            <th data-ar="الحالة" data-fr="État"></th>
+            <th></th>
+          </tr></thead>
+          <tbody id="productsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div class="page" id="page-analytics">
+      <div class="page-hdr">
+        <div>
+          <div class="page-ttl" data-ar="التحليلات" data-fr="Analytiques"></div>
+          <div class="page-sub" data-ar="تحليل ذكي لأداء مخزونك" data-fr="Analyse intelligente de votre stock"></div>
+        </div>
+        <button class="btn btn-ghost" onclick="goTo('ai',null);setTimeout(()=>askAI('أعطني تحليلاً كاملاً للمخزون وتوقعات للشهر القادم'),300)">🤖 <span data-ar="تحليل AI" data-fr="Analyse IA"></span></button>
+      </div>
+      <div class="analytics-grid" id="analyticsGrid"></div>
+    </div>
+
+    <!-- TEAM CHAT -->
+    <div class="page" id="page-chat">
+      <div class="page-hdr">
+        <div>
+          <div class="page-ttl" data-ar="دردشة الفريق" data-fr="Chat équipe"></div>
+          <div class="page-sub" data-ar="تواصل مع زملائك في الوقت الحقيقي" data-fr="Communiquez avec votre équipe en temps réel"></div>
+        </div>
+      </div>
+      <div class="chat-layout">
+        <div class="chat-rooms">
+          <div class="chat-rooms-hdr"><div class="chat-rooms-ttl" data-ar="القنوات" data-fr="Canaux"></div></div>
+          <div class="chat-room-item active" onclick="selectRoom('general',this)">
+            <div class="room-icon" style="background:var(--accent-light)">💬</div>
+            <div><div class="room-name" data-ar="عام" data-fr="Général"></div><div class="room-last" data-ar="للجميع" data-fr="Pour tous"></div></div>
+          </div>
+          <div class="chat-room-item" onclick="selectRoom('stock',this)">
+            <div class="room-icon" style="background:var(--green-light)">📦</div>
+            <div><div class="room-name" data-ar="المخزون" data-fr="Stock"></div><div class="room-last" data-ar="تحديثات المخزون" data-fr="Mises à jour stock"></div></div>
+          </div>
+          <div class="chat-room-item" onclick="selectRoom('alerts',this)">
+            <div class="room-icon" style="background:var(--red-light)">🚨</div>
+            <div><div class="room-name" data-ar="التنبيهات" data-fr="Alertes"></div><div class="room-last" data-ar="تنبيهات فورية" data-fr="Alertes urgentes"></div></div>
+          </div>
+          <div class="online-users" id="onlineUsers">
+            <div class="online-ttl" data-ar="متصل الآن" data-fr="En ligne"></div>
+            <div class="online-list" id="onlineList"></div>
+          </div>
+        </div>
+        <div class="chat-main">
+          <div class="chat-hdr">
+            <div class="chat-hdr-icon" id="chatRoomIcon" style="background:var(--accent-light)">💬</div>
+            <div>
+              <div class="chat-hdr-name" id="chatRoomName"></div>
+              <div class="chat-hdr-desc" id="chatRoomDesc"></div>
+            </div>
+          </div>
+          <div class="chat-msgs" id="chatMsgs"></div>
+          <div class="chat-inp-bar">
+            <textarea class="chat-textarea" id="chatInput" rows="1" placeholder="" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMsg()}" oninput="autoResize(this)"></textarea>
+            <button class="chat-send" onclick="sendChatMsg()">➤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEAM MANAGEMENT -->
+    <div class="page" id="page-team">
+      <div class="page-hdr">
+        <div>
+          <div class="page-ttl" data-ar="إدارة الفريق" data-fr="Gestion équipe"></div>
+          <div class="page-sub" data-ar="أعضاء الفريق والصلاحيات" data-fr="Membres et permissions"></div>
+        </div>
+      </div>
+      <div class="team-grid" id="teamGrid"></div>
+    </div>
+
+    <!-- AI -->
+    <div class="page" id="page-ai">
+      <div class="page-hdr">
+        <div>
+          <div class="page-ttl" data-ar="مساعد الذكاء الاصطناعي" data-fr="Assistant Intelligence Artificielle"></div>
+          <div class="page-sub" data-ar="اسألني أي شيء عن مخزونك" data-fr="Posez-moi n'importe quelle question sur votre stock"></div>
+        </div>
+      </div>
+      <div class="ai-layout">
+        <div class="ai-panel">
+          <div class="ai-hdr">
+            <div class="ai-orb">🤖</div>
+            <div>
+              <div style="font-size:0.9rem;font-weight:800" data-ar="مساعد StockAI" data-fr="Assistant StockAI"></div>
+              <div style="font-size:0.75rem;color:var(--green)" data-ar="● متصل — Claude Sonnet" data-fr="● En ligne — Claude Sonnet"></div>
+            </div>
+          </div>
+          <div class="ai-msgs" id="aiMsgs">
+            <div class="amsg ai">
+              <div class="amsg-av">🤖</div>
+              <div class="amsg-content">
+                <div class="amsg-bubble" data-ar="أهلاً! أنا مساعدك الذكي 🎯<br>اسألني عن مخزونك أو اطلب مني إضافة منتجات جديدة!" data-fr="Bonjour! Je suis votre assistant IA 🎯<br>Posez-moi des questions sur votre stock ou demandez-moi d'ajouter des produits!"></div>
+                <div class="amsg-time" id="aiInitTime"></div>
+              </div>
+            </div>
+          </div>
+          <div class="ai-inp-bar">
+            <textarea class="ai-textarea" id="aiInput" rows="1" placeholder="" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAIMsg()}" oninput="autoResize(this)"></textarea>
+            <button class="ai-send" id="aiSendBtn" onclick="sendAIMsg()">➤</button>
+          </div>
+        </div>
+        <div class="ai-sidebar">
+          <div class="ai-side-card">
+            <div class="ai-side-ttl" data-ar="أسئلة سريعة" data-fr="Questions rapides"></div>
+            <div class="qpill" onclick="askAI('ما هي المنتجات التي وصلت للحد الأدنى؟')">⚠️ <span data-ar="منتجات منخفضة" data-fr="Produits bas"></span></div>
+            <div class="qpill" onclick="askAI('ما هي قيمة مخزوني الإجمالية؟')">💰 <span data-ar="قيمة المخزون" data-fr="Valeur du stock"></span></div>
+            <div class="qpill" onclick="askAI('أعطني توصيات لتحسين المخزون')">💡 <span data-ar="توصيات" data-fr="Recommandations"></span></div>
+            <div class="qpill" onclick="askAI('توقع لي الطلب للشهر القادم')">📈 <span data-ar="توقعات الشهر" data-fr="Prévisions du mois"></span></div>
+            <div class="qpill" onclick="askAI('أضف منتج جديد')">➕ <span data-ar="إضافة منتج بالكلام" data-fr="Ajouter produit par chat"></span></div>
+          </div>
+          <div class="ai-side-card">
+            <div class="ai-side-ttl" data-ar="إحصاءات سريعة" data-fr="Statistiques rapides"></div>
+            <div id="aiInsights"><div style="color:var(--muted);font-size:0.8rem" data-ar="جاري التحميل..." data-fr="Chargement..."></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end main -->
+</div><!-- end appShell -->
+
+<!-- MODAL -->
+<div class="overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-ttl" id="modalTtl"></div>
+      <button class="modal-x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-grid2">
+      <div class="fg full"><label class="flbl" data-ar="اسم المنتج *" data-fr="Nom du produit *"></label><input class="finp" id="fName"></div>
+      <div class="fg"><label class="flbl" data-ar="الفئة *" data-fr="Catégorie *"></label><input class="finp" id="fCat"></div>
+      <div class="fg"><label class="flbl" data-ar="السعر (د.ت) *" data-fr="Prix (TND) *"></label><input class="finp" type="number" id="fPrice" min="0" step="0.001"></div>
+      <div class="fg"><label class="flbl" data-ar="الكمية *" data-fr="Quantité *"></label><input class="finp" type="number" id="fQty" min="0"></div>
+      <div class="fg"><label class="flbl" data-ar="الحد الأدنى *" data-fr="Seuil minimum *"></label><input class="finp" type="number" id="fMin" min="0"><span class="fhint" data-ar="سيتم التنبيه عند الوصول لهذا الرقم" data-fr="Alerte déclenchée à ce seuil"></span></div>
+    </div>
+    <div class="modal-acts">
+      <button class="btn btn-ghost" onclick="closeModal()" data-ar="إلغاء" data-fr="Annuler"></button>
+      <button class="btn btn-primary" onclick="saveProduct()">💾 <span data-ar="حفظ" data-fr="Enregistrer"></span></button>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bnav">
+  <div class="bnav-items">
+    <div class="bnav-item active" onclick="goTo('dashboard',this)" id="bnav-dashboard"><div class="bnav-icon">⚡</div><span data-ar="الرئيسية" data-fr="Accueil"></span></div>
+    <div class="bnav-item" onclick="goTo('products',this)" id="bnav-products"><div class="bnav-icon">📦</div><span data-ar="المنتجات" data-fr="Produits"></span></div>
+    <div class="bnav-item" onclick="goTo('analytics',this)" id="bnav-analytics"><div class="bnav-icon">📊</div><span data-ar="تحليلات" data-fr="Stats"></span></div>
+    <div class="bnav-item" onclick="goTo('chat',this)" id="bnav-chat"><div class="bnav-icon">💬</div><span data-ar="دردشة" data-fr="Chat"></span></div>
+    <div class="bnav-item" onclick="goTo('ai',this)" id="bnav-ai"><div class="bnav-icon">🤖</div><span data-ar="AI" data-fr="IA"></span></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════
+const SB_URL = 'https://wjsrsrgeqhqqqljeygej.supabase.co';
+const SB_KEY = 'sb_publishable_5Er4x_XUmSAb_wktIZw2Bw_pT3ze_KR';
+
+async function sb(path, opts={}) {
+  const headers = { 'apikey':SB_KEY, 'Authorization':'Bearer '+(session?.access_token||SB_KEY), 'Content-Type':'application/json', 'Prefer':opts.prefer||'' };
+  const res = await fetch(SB_URL+'/rest/v1/'+path, {...opts, headers:{...headers,...(opts.headers||{})}});
+  if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error(e.message||'Erreur Supabase'); }
+  if(res.status===204) return null;
+  return res.json();
+}
+
+async function sbAuth(action, body) {
+  const res = await fetch(SB_URL+'/auth/v1/'+action, {
+    method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  const data = await res.json();
+  if(!res.ok) throw new Error(data.error_description||data.msg||'Erreur auth');
+  return data;
+}
+
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let session = null;
+let currentUser = null;
+let userProfile = null;
+let products = [];
+let editingId = null;
+let currentLang = 'ar';
+let currentPage = 'dashboard';
+let currentRoom = 'general';
+let chatPolling = null;
+let lastMsgId = null;
+let selectedRole = 'admin';
+
+// Avatar colors
+const AVATAR_COLORS = ['#2563EB','#7C3AED','#059669','#D97706','#DC2626','#0891B2'];
+const roleLabels = {admin:{ar:'مدير',fr:'Admin',color:'#7C3AED'}, manager:{ar:'مشرف',fr:'Manager',color:'#2563EB'}, caissier:{ar:'أمين صندوق',fr:'Caissier',color:'#059669'}, livreur:{ar:'موزع',fr:'Livreur',color:'#D97706'}};
+const pageNames = {dashboard:{ar:'لوحة التحكم',fr:'Tableau de bord'}, products:{ar:'المنتجات',fr:'Produits'}, analytics:{ar:'التحليلات',fr:'Analytiques'}, chat:{ar:'دردشة الفريق',fr:'Chat équipe'}, team:{ar:'إدارة الفريق',fr:'Gestion équipe'}, ai:{ar:'مساعد AI',fr:'Assistant IA'}};
+
+// ══════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════
+function getStatus(qty,min){ if(qty<=0)return'critical'; if(qty<=min*.5)return'critical'; if(qty<=min)return'low'; return'ok'; }
+function spill(qty,min){ const s=getStatus(qty,min); const m={ok:['ok','✓ Bon / جيد'],low:['low','⚠ Bas / منخفض'],critical:['critical','🚨 Critique / حرج']}; const [c,l]=m[s]; return`<span class="spill ${c}"><span class="sdot"></span>${l}</span>`; }
+function fmt(n){ return (+n).toFixed(3); }
+function fmtK(n){ return n>=1000?(n/1000).toFixed(1)+'K':String(n); }
+function now(){ return new Date().toLocaleTimeString('ar-TN',{hour:'2-digit',minute:'2-digit'}); }
+function t(el){ return el?.getAttribute('data-'+currentLang)||el?.textContent||''; }
+function showLoad(v){ document.getElementById('loadingBar').classList.toggle('show',v); }
+function toast(msg,type='s'){ const el=document.getElementById('toast'); el.textContent=msg; el.className='toast '+type; setTimeout(()=>el.classList.add('show'),10); setTimeout(()=>el.classList.remove('show'),3200); }
+function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px'; }
+function initials(name){ return (name||'?').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase(); }
+
+// ══════════════════════════════════════════
+//  LANGUAGE
+// ══════════════════════════════════════════
+function setLang(lang) {
+  currentLang = lang;
+  document.getElementById('langAr').classList.toggle('active', lang==='ar');
+  document.getElementById('langFr').classList.toggle('active', lang==='fr');
+  document.documentElement.setAttribute('lang', lang);
+  document.documentElement.setAttribute('dir', lang==='ar'?'rtl':'ltr');
+  // Update all data-ar/data-fr elements
+  document.querySelectorAll('[data-ar],[data-fr]').forEach(el => {
+    const val = el.getAttribute('data-'+lang);
+    if(val !== null) {
+      if(el.tagName==='INPUT') el.placeholder = val;
+      else if(el.tagName==='BUTTON'||el.tagName==='OPTION') el.textContent = val;
+      else el.innerHTML = val;
+    }
+  });
+  document.getElementById('topTitle').textContent = pageNames[currentPage]?.[lang]||'';
+  localStorage.setItem('lang', lang);
+}
+
+// ══════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════
+function switchAuthTab(tab) {
+  document.getElementById('loginForm').style.display = tab==='login'?'block':'none';
+  document.getElementById('registerForm').style.display = tab==='register'?'block':'none';
+  document.getElementById('tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('tab-register').classList.toggle('active', tab==='register');
+  document.getElementById('authError').classList.remove('show');
+}
+
+function selectRole(role, el) {
+  selectedRole = role;
+  document.querySelectorAll('.role-pill').forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg; el.classList.add('show');
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if(!email||!password){ showAuthError('أدخل البريد الإلكتروني وكلمة السر'); return; }
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = '⏳ جاري الدخول...';
+  try {
+    const data = await sbAuth('token?grant_type=password', {email, password});
+    session = data; currentUser = data.user;
+    await loadUserProfile();
+    showApp();
+  } catch(e) { showAuthError(e.message); }
+  btn.disabled = false; btn.textContent = '🔐 دخول / Connexion';
+}
+
+async function doRegister() {
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value;
+  if(!name||!email||!password){ showAuthError('أكمل جميع الحقول'); return; }
+  if(password.length < 6){ showAuthError('كلمة السر قصيرة جداً'); return; }
+  const btn = document.getElementById('regBtn');
+  btn.disabled = true; btn.textContent = '⏳ جاري الإنشاء...';
+  try {
+    const data = await sbAuth('signup', {email, password});
+    session = data; currentUser = data.user;
+    // Create profile
+    const color = AVATAR_COLORS[Math.floor(Math.random()*AVATAR_COLORS.length)];
+    await sb('user_profiles', { method:'POST', body:JSON.stringify({id:currentUser.id, full_name:name, role:selectedRole, avatar_color:color}), prefer:'return=minimal' });
+    await loadUserProfile();
+    showApp();
+    toast('✅ تم إنشاء حسابك بنجاح!', 's');
+  } catch(e) { showAuthError(e.message); }
+  btn.disabled = false; btn.textContent = '✨ إنشاء حساب / Créer un compte';
+}
+
+async function loadUserProfile() {
+  try {
+    const data = await sb('user_profiles?id=eq.'+currentUser.id+'&select=*');
+    userProfile = data[0];
+  } catch(e) { userProfile = {full_name: currentUser.email, role:'admin', avatar_color:'#2563EB'}; }
+}
+
+async function doLogout() {
+  try { await sbAuth('logout',{}); } catch(e){}
+  if(chatPolling) clearInterval(chatPolling);
+  session = null; currentUser = null; userProfile = null;
+  document.getElementById('appShell').style.display = 'none';
+  document.getElementById('authScreen').style.display = 'flex';
+  toast('👋 تم الخروج', 'i');
+}
+
+// ══════════════════════════════════════════
+//  APP INIT
+// ══════════════════════════════════════════
+function showApp() {
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appShell').style.display = 'block';
+  // Setup user display
+  const av = userProfile?.avatar_color||'#2563EB';
+  const name = userProfile?.full_name||'User';
+  const role = userProfile?.role||'admin';
+  const ini = initials(name);
+  document.getElementById('sideUserAv').style.background = av;
+  document.getElementById('sideUserAv').textContent = ini;
+  document.getElementById('sideUserName').textContent = name;
+  const rl = document.getElementById('sideUserRole');
+  rl.textContent = roleLabels[role]?.[currentLang]||role;
+  rl.style.background = (roleLabels[role]?.color||'#2563EB')+'20';
+  rl.style.color = roleLabels[role]?.color||'#2563EB';
+  const topAv = document.getElementById('topUserAv');
+  topAv.style.background = av; topAv.textContent = ini;
+  // Role-based nav
+  if(role==='admin') document.getElementById('nav-team').style.display='flex';
+  // Permissions
+  if(role==='livreur') document.getElementById('addProdBtn').style.display='none';
+  // Mobile menu btn
+  if(window.innerWidth<=768) document.getElementById('menuBtn').style.display='flex';
+  // Lang
+  const savedLang = localStorage.getItem('lang')||'ar';
+  setLang(savedLang);
+  // Greeting
+  const h = new Date().getHours();
+  const greet = currentLang==='ar' ? (h<12?'صباح الخير':h<18?'مساء الخير':'مساء النور') : (h<12?'Bonjour':'Bonsoir');
+  document.getElementById('dashGreeting').textContent = greet + ', ' + name.split(' ')[0] + '! 👋';
+  document.getElementById('dashDate').textContent = new Date().toLocaleDateString(currentLang==='ar'?'ar-TN':'fr-TN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('aiInitTime').textContent = now();
+  // Load data
+  loadProducts();
+  startChatPolling();
+}
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+function goTo(page, el) {
+  currentPage = page;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('nav-'+page)?.classList.add('active');
+  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('bnav-'+page)?.classList.add('active');
+  document.getElementById('topTitle').textContent = pageNames[page]?.[currentLang]||'';
+  if(page==='analytics') renderAnalytics();
+  if(page==='ai') updateAiInsights();
+  if(page==='chat') loadChatMsgs();
+  if(page==='team') loadTeam();
+  if(window.innerWidth<=768) document.getElementById('sidebar').classList.remove('open');
+}
+function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); }
+
+// ══════════════════════════════════════════
+//  PRODUCTS
+// ══════════════════════════════════════════
+async function loadProducts() {
+  showLoad(true);
+  try {
+    const data = await sb('products?select=*&order=created_at.desc');
+    products = data.map(p=>({id:p.id,name:p.name,category:p.category,price:+p.price,qty:+p.qty,minQty:+p.min_qty}));
+    updateDashboard(); updateCats(); renderProducts();
+  } catch(e){ toast(currentLang==='ar'?'خطأ في التحميل':'Erreur de chargement','e'); }
+  showLoad(false);
+}
+
+function updateDashboard() {
+  const tot = products.length;
+  const val = products.reduce((s,p)=>s+p.price*p.qty,0);
+  const low = products.filter(p=>getStatus(p.qty,p.minQty)==='low').length;
+  const crit = products.filter(p=>getStatus(p.qty,p.minQty)==='critical').length;
+  document.getElementById('kpiTotal').textContent = fmtK(tot);
+  document.getElementById('kpiValue').textContent = fmt(val);
+  document.getElementById('kpiLow').textContent = low;
+  document.getElementById('kpiCrit').textContent = crit;
+  const alertCount = low+crit;
+  const nb = document.getElementById('navAlertBadge');
+  nb.style.display = alertCount?'inline':'none'; nb.textContent=alertCount;
+  document.getElementById('notifBtn').classList.toggle('notif-dot', alertCount>0);
+  // Alert banner
+  const needAlert = products.filter(p=>getStatus(p.qty,p.minQty)!=='ok');
+  const banner = document.getElementById('alertBanner');
+  if(needAlert.length){ banner.classList.add('show'); document.getElementById('alertChips').innerHTML=needAlert.map(p=>`<span class="alert-chip">${p.name}(${p.qty})</span>`).join(''); }
+  else banner.classList.remove('show');
+  // Recent
+  document.getElementById('dashRecent').innerHTML = products.slice(0,6).map(p=>`<tr>
+    <td><strong>${p.name}</strong></td>
+    <td style="font-family:var(--mono);font-weight:800">${p.qty}</td>
+    <td>${spill(p.qty,p.minQty)}</td>
+  </tr>`).join('') || `<tr><td colspan="3" class="empty" style="padding:1rem;font-size:0.83rem;color:var(--muted)">${currentLang==='ar'?'لا توجد منتجات':'Pas de produits'}</td></tr>`;
+  // Donut
+  const cats={};
+  products.forEach(p=>cats[p.category]=(cats[p.category]||0)+1);
+  const entries=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const colors=['#2563EB','#059669','#D97706','#DC2626','#7C3AED'];
+  if(entries.length){
+    const circ=2*Math.PI*42,t2=products.length||1;
+    let off=0,slices='';
+    entries.forEach((e,i)=>{ const d=(e[1]/t2)*circ; slices+=`<circle cx="50" cy="50" r="42" fill="none" stroke="${colors[i]}" stroke-width="13" stroke-dasharray="${d} ${circ-d}" stroke-dashoffset="${-off}" transform="rotate(-90 50 50)"/>`; off+=d; });
+    document.getElementById('donutWrap').innerHTML=`<div class="donut-wrap">
+      <svg width="100" height="100" viewBox="0 0 100 100" style="flex-shrink:0">${slices}<text x="50" y="55" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="900" font-family="IBM Plex Mono">${t2}</text></svg>
+      <div class="dlegend">${entries.map((e,i)=>`<div class="dleg-row"><div class="dleg-dot" style="background:${colors[i]}"></div><span class="dleg-name">${e[0]}</span><span class="dleg-pct" style="color:${colors[i]}">${Math.round(e[1]/t2*100)}%</span></div>`).join('')}</div>
+    </div>`;
+  }
+}
+
+function updateCats(){
+  const cats=[...new Set(products.map(p=>p.category))];
+  const sel=document.getElementById('catFilter');
+  const cur=sel.value;
+  const allOpt = currentLang==='ar'?'كل الفئات':'Toutes catégories';
+  sel.innerHTML=`<option value="">${allOpt}</option>`+cats.map(c=>`<option value="${c}"${c===cur?' selected':''}>${c}</option>`).join('');
+}
+
+function renderProducts(){
+  const search=document.getElementById('searchInput')?.value.toLowerCase()||'';
+  const cat=document.getElementById('catFilter')?.value||'';
+  const status=document.getElementById('statusFilter')?.value||'';
+  const canEdit = ['admin','manager'].includes(userProfile?.role);
+  let list=products.filter(p=>
+    (!search||p.name.toLowerCase().includes(search)||p.category.toLowerCase().includes(search))&&
+    (!cat||p.category===cat)&&(!status||getStatus(p.qty,p.minQty)===status));
+  document.getElementById('prodCount').textContent = currentLang==='ar'?`${list.length} منتج`:` ${list.length} produit(s)`;
+  const tbody=document.getElementById('productsBody');
+  if(!list.length){ tbody.innerHTML=`<tr><td colspan="7"><div class="empty"><div class="empty-ic">📭</div><div class="empty-tt">${currentLang==='ar'?'لا توجد نتائج':'Aucun résultat'}</div></div></td></tr>`; return; }
+  const maxQ=Math.max(...list.map(p=>p.qty),1);
+  const barC={ok:'#059669',low:'#D97706',critical:'#DC2626'};
+  tbody.innerHTML=list.map(p=>{
+    const s=getStatus(p.qty,p.minQty);
+    const pct=Math.min(100,Math.round(p.qty/maxQ*100));
+    return`<tr>
+      <td><div class="prod-name">${p.name}</div></td>
+      <td><span class="cat-tag">${p.category}</span></td>
+      <td><span class="price-num">${fmt(p.price)}</span></td>
+      <td><div class="qty-num" style="color:${barC[s]}">${p.qty}</div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${barC[s]}"></div></div></td>
+      <td style="font-family:var(--mono);color:var(--muted)">${p.minQty}</td>
+      <td>${spill(p.qty,p.minQty)}</td>
+      <td><div class="act-cell">
+        ${canEdit?`<button class="btn btn-ghost btn-sm" onclick="openModal('${p.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">🗑</button>`:'—'}
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function openModal(id=null){
+  if(!['admin','manager'].includes(userProfile?.role)){ toast(currentLang==='ar'?'ليس لديك صلاحية':'Permission refusée','e'); return; }
+  editingId=id;
+  document.getElementById('modalTtl').textContent = id?(currentLang==='ar'?'✏️ تعديل المنتج':'✏️ Modifier produit'):(currentLang==='ar'?'➕ إضافة منتج':'➕ Ajouter produit');
+  if(id){ const p=products.find(x=>x.id===id); document.getElementById('fName').value=p.name; document.getElementById('fCat').value=p.category; document.getElementById('fPrice').value=p.price; document.getElementById('fQty').value=p.qty; document.getElementById('fMin').value=p.minQty; }
+  else ['fName','fCat','fPrice','fQty','fMin'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('fName').focus(),100);
+}
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
+
+async function saveProduct(){
+  const name=document.getElementById('fName').value.trim();
+  const category=document.getElementById('fCat').value.trim();
+  const price=parseFloat(document.getElementById('fPrice').value);
+  const qty=parseInt(document.getElementById('fQty').value);
+  const minQty=parseInt(document.getElementById('fMin').value);
+  if(!name||!category||isNaN(price)||isNaN(qty)||isNaN(minQty)){ toast(currentLang==='ar'?'أكمل الحقول المطلوبة':'Remplissez tous les champs','e'); return; }
+  const body=JSON.stringify({name,category,price,qty,min_qty:minQty});
+  showLoad(true);
+  try {
+    if(editingId){ await sb('products?id=eq.'+editingId,{method:'PATCH',body,prefer:'return=minimal'}); toast(currentLang==='ar'?'✅ تم التعديل':'✅ Modifié','s'); }
+    else{ await sb('products',{method:'POST',body,prefer:'return=minimal'}); toast(currentLang==='ar'?'✅ تم الإضافة':'✅ Ajouté','s'); }
+    closeModal(); await loadProducts();
+  } catch(e){ toast(e.message,'e'); }
+  showLoad(false);
+}
+
+async function deleteProduct(id){
+  if(!confirm(currentLang==='ar'?'هل أنت متأكد من الحذف؟':'Confirmer la suppression?')) return;
+  showLoad(true);
+  try{ await sb('products?id=eq.'+id,{method:'DELETE',prefer:'return=minimal'}); toast(currentLang==='ar'?'🗑️ تم الحذف':'🗑️ Supprimé','s'); await loadProducts(); }
+  catch(e){ toast(e.message,'e'); }
+  showLoad(false);
+}
+
+// ══════════════════════════════════════════
+//  ANALYTICS
+// ══════════════════════════════════════════
+function renderAnalytics(){
+  const grid=document.getElementById('analyticsGrid');
+  if(!products.length){ grid.innerHTML=`<div class="achart full"><div class="empty"><div class="empty-ic">📊</div><div class="empty-tt">${currentLang==='ar'?'لا توجد بيانات':'Pas de données'}</div></div></div>`; return; }
+  const colors=['#2563EB','#059669','#D97706','#DC2626','#7C3AED','#0891B2'];
+  const topVal=[...products].sort((a,b)=>(b.price*b.qty)-(a.price*a.qty)).slice(0,6);
+  const maxV=topVal[0]?.price*topVal[0]?.qty||1;
+  const cats={};
+  products.forEach(p=>cats[p.category]=(cats[p.category]||0)+p.qty);
+  const catArr=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  const maxC=catArr[0]?.[1]||1;
+  const ok=products.filter(p=>getStatus(p.qty,p.minQty)==='ok').length;
+  const low=products.filter(p=>getStatus(p.qty,p.minQty)==='low').length;
+  const crit=products.filter(p=>getStatus(p.qty,p.minQty)==='critical').length;
+  const tot=products.length||1;
+  const health=Math.round(ok/tot*100);
+  grid.innerHTML=`
+    <div class="achart">
+      <div class="achart-ttl">💰 ${currentLang==='ar'?'أعلى المنتجات قيمةً':'Top produits par valeur'}</div>
+      <div class="achart-sub">${currentLang==='ar'?'إجمالي قيمة المخزون':'Valeur totale de stock'}</div>
+      <div class="bar-list">${topVal.map((p,i)=>{ const v=p.price*p.qty,pct=Math.round(v/maxV*100); return`<div><div class="bar-item-meta"><span class="bar-item-name">${p.name}</span><span class="bar-item-val">${fmt(v)} TND</span></div><div class="bar-track"><div class="bar-fill-a" style="width:${pct}%;background:${colors[i%6]}"></div></div></div>`; }).join('')}</div>
+    </div>
+    <div class="achart">
+      <div class="achart-ttl">⚕️ ${currentLang==='ar'?'صحة المخزون':'Santé du stock'}</div>
+      <div class="achart-sub">${currentLang==='ar'?'توزيع حالات المنتجات':'Distribution des états produits'}</div>
+      <div class="bar-list">${[
+        [currentLang==='ar'?'✅ جيد':'✅ Bon',ok,'#059669'],
+        [currentLang==='ar'?'⚠️ منخفض':'⚠️ Bas',low,'#D97706'],
+        [currentLang==='ar'?'🚨 حرج':'🚨 Critique',crit,'#DC2626']
+      ].map(([label,count,color])=>{ const pct=Math.round(count/tot*100); return`<div><div class="bar-item-meta"><span class="bar-item-name">${label}</span><span class="bar-item-val" style="color:${color};font-weight:700">${count} (${pct}%)</span></div><div class="bar-track" style="height:10px"><div class="bar-fill-a" style="width:${pct||1}%;background:${color}"></div></div></div>`; }).join('')}</div>
+      <div class="score-box"><div class="score-val" style="color:${health>70?'var(--green)':health>40?'var(--orange)':'var(--red)'}">${health}%</div><div class="score-lbl">${currentLang==='ar'?'صحة المخزون الإجمالية':'Santé globale du stock'}</div></div>
+    </div>
+    <div class="achart">
+      <div class="achart-ttl">🏷️ ${currentLang==='ar'?'الكمية حسب الفئة':'Quantité par catégorie'}</div>
+      <div class="achart-sub">${currentLang==='ar'?'مجموع الكميات':'Total des quantités'}</div>
+      <div class="bar-list">${catArr.map((e,i)=>{ const pct=Math.round(e[1]/maxC*100); return`<div><div class="bar-item-meta"><span class="bar-item-name">${e[0]}</span><span class="bar-item-val">${fmtK(e[1])} ${currentLang==='ar'?'وحدة':'unités'}</span></div><div class="bar-track"><div class="bar-fill-a" style="width:${pct}%;background:${colors[i%6]}"></div></div></div>`; }).join('')}</div>
+    </div>
+    <div class="achart">
+      <div class="achart-ttl">📈 ${currentLang==='ar'?'ملخص الأداء':'Résumé des performances'}</div>
+      <div class="achart-sub">${currentLang==='ar'?'مؤشرات رئيسية':'Indicateurs clés'}</div>
+      ${[
+        [currentLang==='ar'?'إجمالي المنتجات':'Total produits', products.length, '#2563EB'],
+        [currentLang==='ar'?'إجمالي القيمة':'Valeur totale', fmt(products.reduce((s,p)=>s+p.price*p.qty,0))+' TND', '#059669'],
+        [currentLang==='ar'?'متوسط السعر':'Prix moyen', fmt(products.reduce((s,p)=>s+p.price,0)/(products.length||1))+' TND', '#D97706'],
+        [currentLang==='ar'?'تحتاج تموين':'À réapprovisionner', low+crit, '#DC2626'],
+      ].map(([label,val,color])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--surface2);border-radius:var(--r-md);margin-bottom:8px"><span style="font-size:0.8rem;color:var(--text2)">${label}</span><span style="font-family:var(--mono);font-weight:800;color:${color};font-size:0.88rem">${val}</span></div>`).join('')}
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+//  TEAM CHAT
+// ══════════════════════════════════════════
+const roomInfo = {
+  general:{ar:'عام',fr:'Général',icon:'💬',desc:{ar:'للجميع',fr:'Pour tous'},bg:'var(--accent-light)'},
+  stock:{ar:'المخزون',fr:'Stock',icon:'📦',desc:{ar:'تحديثات المخزون',fr:'Mises à jour stock'},bg:'var(--green-light)'},
+  alerts:{ar:'التنبيهات',fr:'Alertes',icon:'🚨',desc:{ar:'تنبيهات فورية',fr:'Alertes urgentes'},bg:'var(--red-light)'}
+};
+
+function selectRoom(room, el) {
+  currentRoom = room;
+  document.querySelectorAll('.chat-room-item').forEach(r=>r.classList.remove('active'));
+  el?.classList.add('active');
+  const info = roomInfo[room];
+  document.getElementById('chatRoomIcon').textContent = info.icon;
+  document.getElementById('chatRoomIcon').style.background = info.bg;
+  document.getElementById('chatRoomName').textContent = info[currentLang]||info.ar;
+  document.getElementById('chatRoomDesc').textContent = info.desc[currentLang]||info.desc.ar;
+  loadChatMsgs();
+}
+
+async function loadChatMsgs() {
+  try {
+    const data = await sb(`team_messages?room=eq.${currentRoom}&select=*,user_profiles(full_name,avatar_color,role)&order=created_at.asc&limit=50`);
+    const msgs = document.getElementById('chatMsgs');
+    if(!data?.length){
+      msgs.innerHTML=`<div style="text-align:center;padding:40px;color:var(--muted);font-size:0.85rem">${currentLang==='ar'?'لا توجد رسائل بعد — ابدأ المحادثة!':'Pas encore de messages — Commencez la conversation!'}</div>`;
+      return;
+    }
+    msgs.innerHTML = data.map(m => {
+      const isMe = m.user_id === currentUser?.id;
+      const profile = m.user_profiles;
+      const av = profile?.avatar_color||'#2563EB';
+      const name = profile?.full_name||m.user_name;
+      const role = profile?.role||'';
+      const time = new Date(m.created_at).toLocaleTimeString('ar-TN',{hour:'2-digit',minute:'2-digit'});
+      return `<div class="cmsg ${isMe?'me':'other'}">
+        <div class="cmsg-av" style="background:${av}">${initials(name)}</div>
+        <div class="cmsg-body">
+          <div class="cmsg-meta">
+            <span class="cmsg-name">${isMe?(currentLang==='ar'?'أنت':'Vous'):name}</span>
+            ${!isMe?`<span style="font-size:0.68rem;color:var(--muted)">${roleLabels[role]?.[currentLang]||role}</span>`:''}
+            <span class="cmsg-time">${time}</span>
+          </div>
+          <div class="cmsg-bubble">${m.message}</div>
+        </div>
+      </div>`;
+    }).join('');
+    msgs.scrollTop = msgs.scrollHeight;
+  } catch(e) { /* silent */ }
+}
+
+async function sendChatMsg() {
+  const inp = document.getElementById('chatInput');
+  const msg = inp.value.trim();
+  if(!msg||!currentUser) return;
+  inp.value = ''; autoResize(inp);
+  try {
+    await sb('team_messages', {
+      method:'POST',
+      body:JSON.stringify({user_id:currentUser.id, user_name:userProfile?.full_name||'User', user_role:userProfile?.role||'admin', message:msg, room:currentRoom}),
+      prefer:'return=minimal'
+    });
+    await loadChatMsgs();
+  } catch(e){ toast(e.message,'e'); }
+}
+
+function startChatPolling() {
+  if(chatPolling) clearInterval(chatPolling);
+  chatPolling = setInterval(async()=>{
+    if(currentPage==='chat') await loadChatMsgs();
+  }, 4000);
+}
+
+// ══════════════════════════════════════════
+//  TEAM MANAGEMENT
+// ══════════════════════════════════════════
+async function loadTeam() {
+  showLoad(true);
+  try {
+    const data = await sb('user_profiles?select=*');
+    const grid = document.getElementById('teamGrid');
+    if(!data?.length){ grid.innerHTML=`<div class="empty"><div class="empty-ic">👥</div><div class="empty-tt">${currentLang==='ar'?'لا توجد بيانات':'Pas de données'}</div></div>`; return; }
+    grid.innerHTML = data.map(u=>`<div class="team-card">
+      <div class="team-av" style="background:${u.avatar_color||'#2563EB'}">${initials(u.full_name)}</div>
+      <div class="team-name">${u.full_name}</div>
+      <div style="margin-bottom:8px"><span class="role-tag role-${u.role}">${roleLabels[u.role]?.[currentLang]||u.role}</span></div>
+      <div style="font-size:0.72rem;color:var(--muted)">${new Date(u.created_at).toLocaleDateString(currentLang==='ar'?'ar-TN':'fr-TN')}</div>
+    </div>`).join('');
+  } catch(e){ toast(e.message,'e'); }
+  showLoad(false);
+}
+
+// ══════════════════════════════════════════
+//  AI CHAT
+// ══════════════════════════════════════════
+function getStockCtx(){
+  return `أنت مساعد ذكي لإدارة المخزون. تجاوب بالعربية أو الفرنسية حسب لغة السؤال. كن موجزاً ومفيداً.
+
+بيانات المخزون (${new Date().toLocaleDateString('ar-TN')}):
+المستخدم الحالي: ${userProfile?.full_name} (${userProfile?.role})
+إجمالي المنتجات: ${products.length}
+القيمة الإجمالية: ${fmt(products.reduce((s,p)=>s+p.price*p.qty,0))} دينار تونسي
+منتجات حرجة: ${products.filter(p=>getStatus(p.qty,p.minQty)==='critical').map(p=>p.name+'('+p.qty+')').join(', ')||'لا يوجد'}
+منتجات منخفضة: ${products.filter(p=>getStatus(p.qty,p.minQty)==='low').map(p=>p.name).join(', ')||'لا يوجد'}
+
+قائمة المنتجات:
+${products.map(p=>`• ${p.name} | ${p.category} | الكمية: ${p.qty} | الحد: ${p.minQty} | السعر: ${p.price} TND`).join('\n')||'لا توجد منتجات'}
+
+إذا طُلب إضافة منتج، اطلب المعلومات الناقصة ثم أرسل في السطر الأخير بالضبط:
+ADD_PRODUCT:{"name":"...","category":"...","price":0,"qty":0,"min_qty":0}`;
+}
+
+async function sendAIMsg(){
+  const inp=document.getElementById('aiInput');
+  const msg=inp.value.trim();
+  if(!msg) return;
+  inp.value=''; autoResize(inp);
+  addAIMsg(msg,'user');
+  const typId=addTyping();
+  document.getElementById('aiSendBtn').disabled=true;
+  try {
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:getStockCtx(),messages:[{role:'user',content:msg}]})});
+    const data=await res.json();
+    removeTyping(typId);
+    const text=data.content?.map(b=>b.text||'').join('')||'Error';
+    if(text.includes('ADD_PRODUCT:')){
+      try{
+        const jsonStr=text.split('ADD_PRODUCT:')[1].trim();
+        const prod=JSON.parse(jsonStr);
+        await sb('products',{method:'POST',body:JSON.stringify(prod),prefer:'return=minimal'});
+        await loadProducts();
+        addAIMsg(text.split('ADD_PRODUCT:')[0].trim()+'\n\n✅ '+(currentLang==='ar'?'تم إضافة المنتج تلقائياً!':'Produit ajouté automatiquement!'),'ai');
+        toast(currentLang==='ar'?'✅ أضاف AI منتجاً':'✅ IA a ajouté un produit','s');
+      }catch{ addAIMsg(text,'ai'); }
+    } else addAIMsg(text,'ai');
+  } catch(e){ removeTyping(typId); addAIMsg(currentLang==='ar'?'خطأ في الاتصال':'Erreur de connexion','ai'); }
+  document.getElementById('aiSendBtn').disabled=false;
+}
+
+function addAIMsg(text,role){
+  const msgs=document.getElementById('aiMsgs');
+  const div=document.createElement('div');
+  div.className='amsg '+role;
+  div.innerHTML=`<div class="amsg-av">${role==='ai'?'🤖':'👤'}</div><div class="amsg-content"><div class="amsg-bubble">${text.replace(/\n/g,'<br>')}</div><div class="amsg-time">${now()}</div></div>`;
+  msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight;
+}
+function addTyping(){
+  const msgs=document.getElementById('aiMsgs');
+  const id='typ-'+Date.now();
+  const div=document.createElement('div');
+  div.className='amsg ai'; div.id=id;
+  div.innerHTML=`<div class="amsg-av">🤖</div><div class="amsg-content"><div class="amsg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div></div>`;
+  msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight; return id;
+}
+function removeTyping(id){ document.getElementById(id)?.remove(); }
+function askAI(q){ goTo('ai',null); setTimeout(()=>{ document.getElementById('aiInput').value=q; sendAIMsg(); },200); }
+
+function updateAiInsights(){
+  const el=document.getElementById('aiInsights');
+  if(!products.length){ el.innerHTML=`<div style="color:var(--muted);font-size:0.8rem">${currentLang==='ar'?'أضف منتجات أولاً':'Ajoutez des produits d\'abord'}</div>`; return; }
+  const crit=products.filter(p=>getStatus(p.qty,p.minQty)==='critical');
+  const topV=[...products].sort((a,b)=>(b.price*b.qty)-(a.price*a.qty))[0];
+  el.innerHTML=[
+    crit.length?['🚨','var(--red-light)',currentLang==='ar'?'حرج':'Critique',crit.length+(currentLang==='ar'?' منتج يحتاج تموين':' produit(s) critique(s)')]:['✅','var(--green-light)',currentLang==='ar'?'ممتاز':'Excellent',currentLang==='ar'?'كل المنتجات بخير':'Tous les produits sont OK'],
+    topV?['💎','var(--purple-light)',currentLang==='ar'?'أعلى قيمة':'Plus haute valeur',topV.name+': '+fmt(topV.price*topV.qty)+' TND']:null,
+    ['📦','var(--accent-light)',currentLang==='ar'?'إجمالي':'Total',products.length+(currentLang==='ar'?' منتج':' produit(s)')],
+  ].filter(Boolean).map(([ic,bg,t3,d])=>`<div class="insight-item"><div class="ins-ic" style="background:${bg}">${ic}</div><div class="ins-text"><strong>${t3}</strong>${d}</div></div>`).join('');
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+window.addEventListener('resize',()=>{ document.getElementById('menuBtn').style.display=window.innerWidth<=768?'flex':'none'; });
+
+// Restore lang
+const savedLang = localStorage.getItem('lang')||'ar';
+setLang(savedLang);
+
+// Add room column to messages if not exists (SQL patch)
+// Check session on load
+(async()=>{
+  try {
+    // Try to restore session from localStorage
+    const savedSession = localStorage.getItem('sb_session');
+    if(savedSession){
+      const s = JSON.parse(savedSession);
+      // Verify token
+      const res = await fetch(SB_URL+'/auth/v1/user',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+s.access_token}});
+      if(res.ok){
+        const user = await res.json();
+        session = s; currentUser = user;
+        await loadUserProfile();
+        showApp();
+        return;
+      }
+    }
+  } catch(e){}
+  // Show auth screen
+})();
+
+// Save session on login
+const origShowApp = showApp;
+window.addEventListener('beforeunload',()=>{
+  if(session) localStorage.setItem('sb_session', JSON.stringify(session));
+});
+</script>
+</body>
+</html>
