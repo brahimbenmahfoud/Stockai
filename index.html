@@ -1057,7 +1057,9 @@ async function doRegister() {
   btn.disabled = true; btn.textContent = '⏳ جاري الإنشاء...';
   try {
     const data = await sbAuth('signup', {email, password});
-    session = data; currentUser = data.user;
+    session = data;
+    currentUser = data.user || data.session?.user || null;
+    if(!currentUser || !currentUser.id) throw new Error('فشل إنشاء الحساب — جرب مرة أخرى');
     // Create profile
     const color = AVATAR_COLORS[Math.floor(Math.random()*AVATAR_COLORS.length)];
     await sb('user_profiles', { method:'POST', body:JSON.stringify({id:currentUser.id, full_name:name, role:selectedRole, avatar_color:color}), prefer:'return=minimal' });
