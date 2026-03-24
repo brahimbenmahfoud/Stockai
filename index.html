@@ -2,43 +2,118 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 <title>StockAI Pro</title>
 
-<!-- PWA -->
+<!-- PWA Meta Tags -->
 <meta name="application-name" content="StockAI Pro">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="StockAI Pro">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="StockAI">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#2563EB">
+<meta name="theme-color" content="#0EA5E9">
 <meta name="description" content="إدارة المخزون الذكية بالذكاء الاصطناعي">
+<meta name="format-detection" content="telephone=no">
 
-<!-- Icons -->
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232563EB'/><text y='.9em' font-size='80' x='10'>📦</text></svg>">
+<!-- Apple Touch Icons -->
+<link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
 
-<!-- Manifest inline -->
+<!-- PWA Manifest + Service Worker — all inline -->
 <script>
-const manifestData = {
-  name: "StockAI Pro",
-  short_name: "StockAI",
-  description: "إدارة المخزون الذكية",
-  start_url: "/",
-  display: "standalone",
-  background_color: "#F4F6FB",
-  theme_color: "#2563EB",
-  orientation: "any",
-  icons: [
-    { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232563EB'/><text y='.9em' font-size='80' x='10'>📦</text></svg>", sizes: "192x192", type: "image/svg+xml" }
-  ]
-};
-const blob = new Blob([JSON.stringify(manifestData)], {type:'application/json'});
-const manifestUrl = URL.createObjectURL(blob);
-document.addEventListener('DOMContentLoaded', () => {
+// ══ MANIFEST ══
+(function() {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <rect width="512" height="512" rx="120" fill="#0EA5E9"/>
+    <text y="380" x="60" font-size="380" font-family="serif">📦</text>
+  </svg>`;
+  const svgBlob = new Blob([svg], {type:'image/svg+xml'});
+  const svgUrl = URL.createObjectURL(svgBlob);
+  const manifest = {
+    name: "StockAI Pro",
+    short_name: "StockAI",
+    description: "إدارة المخزون الذكية",
+    start_url: "./",
+    scope: "./",
+    display: "standalone",
+    orientation: "any",
+    background_color: "#F8FBFF",
+    theme_color: "#0EA5E9",
+    lang: "ar",
+    dir: "rtl",
+    categories: ["business", "productivity"],
+    icons: [
+      { src: svgUrl, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" },
+      { src: svgUrl, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+    ],
+    shortcuts: [
+      { name: "المنتجات", short_name: "منتجات", url: "./#products", description: "إدارة المنتجات" },
+      { name: "مساعد AI", short_name: "AI", url: "./#ai", description: "مساعد الذكاء الاصطناعي" }
+    ]
+  };
+  const mBlob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
+  const mUrl = URL.createObjectURL(mBlob);
   const link = document.createElement('link');
-  link.rel = 'manifest'; link.href = manifestUrl;
+  link.rel = 'manifest'; link.href = mUrl;
   document.head.appendChild(link);
-});
+})();
+
+// ══ SERVICE WORKER ══
+if('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'stockai-v1';
+    const ASSETS = ['./', './index.html'];
+    
+    self.addEventListener('install', e => {
+      e.waitUntil(
+        caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())
+      );
+    });
+    
+    self.addEventListener('activate', e => {
+      e.waitUntil(
+        caches.keys().then(keys =>
+          Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+        ).then(() => self.clients.claim())
+      );
+    });
+    
+    self.addEventListener('fetch', e => {
+      if(e.request.method !== 'GET') return;
+      if(e.request.url.includes('supabase') || e.request.url.includes('anthropic') || e.request.url.includes('googleapis')) return;
+      e.respondWith(
+        caches.match(e.request).then(cached => {
+          return cached || fetch(e.request).then(res => {
+            if(res.ok) {
+              const clone = res.clone();
+              caches.open(CACHE).then(c => c.put(e.request, clone));
+            }
+            return res;
+          }).catch(() => cached || new Response('Offline', {status: 503}));
+        })
+      );
+    });
+    
+    self.addEventListener('message', e => {
+      if(e.data === 'skipWaiting') self.skipWaiting();
+    });
+  `;
+  const swBlob = new Blob([swCode], {type:'application/javascript'});
+  const swUrl = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl, {scope: './'})
+    .then(reg => {
+      console.log('✅ PWA Service Worker registered');
+      reg.addEventListener('updatefound', () => {
+        const worker = reg.installing;
+        worker.addEventListener('statechange', () => {
+          if(worker.state === 'installed' && navigator.serviceWorker.controller) {
+            // New version available
+            console.log('🔄 New version available');
+          }
+        });
+      });
+    })
+    .catch(err => console.log('SW error:', err));
+}
 </script>
 
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -868,6 +943,33 @@ body {
 
 <div class="loading-bar" id="loadingBar"></div>
 <div class="toast" id="toast"></div>
+
+<!-- ══ PWA INSTALL BANNER ══ -->
+<div id="installBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9998;
+  background:linear-gradient(135deg,#0EA5E9,#0284C7);
+  padding:14px 20px; display:none; align-items:center; justify-content:space-between;
+  box-shadow:0 -4px 20px rgba(14,165,233,0.3);
+  animation:slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1)">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div style="width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,0.2);
+      display:flex;align-items:center;justify-content:center;font-size:1.3rem">📦</div>
+    <div>
+      <div style="font-size:0.88rem;font-weight:800;color:#fff">تنصيب StockAI Pro</div>
+      <div style="font-size:0.74rem;color:rgba(255,255,255,0.75)">شغّله مثل تطبيق حقيقي!</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <button onclick="dismissInstall()" style="background:rgba(255,255,255,0.15);border:none;
+      color:#fff;padding:7px 12px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:700">
+      لاحقاً
+    </button>
+    <button onclick="installPWA()" style="background:#fff;border:none;
+      color:#0284C7;padding:7px 16px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:800">
+      📲 تنصيب
+    </button>
+  </div>
+</div>
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
 
 <!-- ══ AUTH SCREEN ══ -->
 <div id="authScreen">
@@ -1819,28 +1921,49 @@ let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  // Show install button
+  // Show install banner
+  const banner = document.getElementById('installBanner');
+  if(banner && !localStorage.getItem('pwa-dismissed')) {
+    banner.style.display = 'flex';
+  }
+  // Show sidebar install btn
   const btn = document.getElementById('installBtn');
   if(btn) btn.style.display = 'flex';
 });
 
 window.addEventListener('appinstalled', () => {
   deferredPrompt = null;
+  document.getElementById('installBanner').style.display = 'none';
   const btn = document.getElementById('installBtn');
   if(btn) btn.style.display = 'none';
-  toast('✅ تم تنصيب التطبيق بنجاح!', 's');
+  toast('🎉 تم تنصيب StockAI Pro بنجاح!', 's');
 });
 
-async function installApp() {
-  if(!deferredPrompt) {
-    toast(currentLang==='ar'?'افتح الإعدادات → "إضافة للشاشة الرئيسية"':'Paramètres → "Ajouter à l\'écran d\'accueil"', 'i');
-    return;
+async function installPWA() {
+  if(deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if(outcome === 'accepted') {
+      document.getElementById('installBanner').style.display = 'none';
+    }
+    deferredPrompt = null;
+  } else {
+    // iOS guide
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if(isIOS) {
+      toast('Safari: اضغط □ ثم "Add to Home Screen"', 'i');
+    } else {
+      toast('المتصفح: اضغط ⋮ ثم "Install App"', 'i');
+    }
   }
-  deferredPrompt.prompt();
-  const result = await deferredPrompt.userChoice;
-  if(result.outcome === 'accepted') toast('✅ جاري التنصيب...', 's');
-  deferredPrompt = null;
 }
+
+function dismissInstall() {
+  document.getElementById('installBanner').style.display = 'none';
+  localStorage.setItem('pwa-dismissed', '1');
+}
+
+async function installApp() { installPWA(); }
 
 // Restore lang
 const savedLang = localStorage.getItem('lang')||'ar';
