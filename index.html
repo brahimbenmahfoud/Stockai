@@ -889,6 +889,7 @@ body {
 }
 .loading-bar.show { display:block; }
 @keyframes lmove { 0%{background-position:200%} 100%{background-position:-200%} }
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
 
 /* ══ BOTTOM NAV ══ */
 .bnav {
@@ -969,8 +970,6 @@ body {
     </button>
   </div>
 </div>
-@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
-
 <!-- ══ AUTH SCREEN ══ -->
 <div id="authScreen">
   <div class="auth-card">
@@ -1454,6 +1453,18 @@ async function doLogin() {
   try {
     const data = await sbAuth('token?grant_type=password', {email, password});
     session = data; currentUser = data.user;
+    // Create profile if not exists (after email confirmation)
+    try {
+      const profiles = await sb('user_profiles?id=eq.'+currentUser.id+'&select=*');
+      if(!profiles || profiles.length === 0) {
+        const pendingName = localStorage.getItem('pending_name') || email.split('@')[0];
+        const pendingRole = localStorage.getItem('pending_role') || 'admin';
+        const color = AVATAR_COLORS[Math.floor(Math.random()*AVATAR_COLORS.length)];
+        await sb('user_profiles', {method:'POST', body:JSON.stringify({id:currentUser.id, full_name:pendingName, role:pendingRole, avatar_color:color}), prefer:'return=minimal'});
+        localStorage.removeItem('pending_name');
+        localStorage.removeItem('pending_role');
+      }
+    } catch(e) {}
     await loadUserProfile();
     showApp();
   } catch(e) { showAuthError(e.message); }
@@ -1465,21 +1476,50 @@ async function doRegister() {
   const email = document.getElementById('regEmail').value.trim();
   const password = document.getElementById('regPassword').value;
   if(!name||!email||!password){ showAuthError('أكمل جميع الحقول'); return; }
-  if(password.length < 6){ showAuthError('كلمة السر قصيرة جداً'); return; }
+  if(password.length < 6){ showAuthError('كلمة السر قصيرة جداً — 6 أحرف على الأقل'); return; }
   const btn = document.getElementById('regBtn');
   btn.disabled = true; btn.textContent = '⏳ جاري الإنشاء...';
   try {
-    const data = await sbAuth('signup', {email, password});
+    const data = await sbAuth('signup', {email, password, data:{full_name:name}});
+
+    // Case 1: Email confirmation required
+    if(data.user && !data.session && !data.access_token) {
+      // Save name+role for after confirmation, then auto-login
+      localStorage.setItem('pending_name', name);
+      localStorage.setItem('pending_role', selectedRole);
+      // Try to login immediately (if confirmation disabled server-side)
+      try {
+        const loginData = await sbAuth('token?grant_type=password', {email, password});
+        session = loginData; currentUser = loginData.user;
+        const color = AVATAR_COLORS[Math.floor(Math.random()*AVATAR_COLORS.length)];
+        await sb('user_profiles', {method:'POST', body:JSON.stringify({id:currentUser.id, full_name:name, role:selectedRole, avatar_color:color}), prefer:'return=minimal'});
+        await loadUserProfile();
+        showApp();
+        toast('✅ تم إنشاء حسابك بنجاح!', 's');
+        return;
+      } catch(loginErr) {
+        // Confirmation email was sent
+        showAuthError('');
+        document.getElementById('authError').style.display = 'block';
+        document.getElementById('authError').style.background = '#ECFDF5';
+        document.getElementById('authError').style.color = '#059669';
+        document.getElementById('authError').style.borderColor = 'rgba(5,150,105,0.3)';
+        document.getElementById('authError').textContent = '📧 راجع بريدك الإلكتروني وأكد حسابك، بعدها ادخل بكلمة السر';
+        btn.disabled = false; btn.textContent = '✨ إنشاء حساب / Créer un compte';
+        return;
+      }
+    }
+
+    // Case 2: Direct session (confirmation disabled)
     session = data;
     currentUser = data.user || data.session?.user || null;
     if(!currentUser || !currentUser.id) throw new Error('فشل إنشاء الحساب — جرب مرة أخرى');
-    // Create profile
     const color = AVATAR_COLORS[Math.floor(Math.random()*AVATAR_COLORS.length)];
-    await sb('user_profiles', { method:'POST', body:JSON.stringify({id:currentUser.id, full_name:name, role:selectedRole, avatar_color:color}), prefer:'return=minimal' });
+    await sb('user_profiles', {method:'POST', body:JSON.stringify({id:currentUser.id, full_name:name, role:selectedRole, avatar_color:color}), prefer:'return=minimal'});
     await loadUserProfile();
     showApp();
     toast('✅ تم إنشاء حسابك بنجاح!', 's');
-  } catch(e) { showAuthError(e.message); }
+  } catch(e) { showAuthError(e.message||'خطأ في إنشاء الحساب'); }
   btn.disabled = false; btn.textContent = '✨ إنشاء حساب / Créer un compte';
 }
 
