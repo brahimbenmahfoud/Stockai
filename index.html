@@ -1066,6 +1066,9 @@ body {
       <div class="nav-label">الفريق / Équipe</div>
       <div class="nav-item" onclick="goTo('chat',this)" id="nav-chat"><span class="nav-icon">💬</span> <span data-ar="دردشة الفريق" data-fr="Chat équipe"></span><span class="chat-badge" id="chatBadge" style="display:none">●</span></div>
       <div class="nav-item" onclick="goTo('team',this)" id="nav-team" style="display:none"><span class="nav-icon">👥</span> <span data-ar="إدارة الفريق" data-fr="Gestion équipe"></span></div>
+      <div class="nav-item" onclick="goTo('pointage',this)" id="nav-pointage"><span class="nav-icon">📍</span> <span data-ar="الحضور والغياب" data-fr="Pointage"></span></div>
+      <div class="nav-item" onclick="goTo('salaires',this)" id="nav-salaires" style="display:none"><span class="nav-icon">💵</span> <span data-ar="الرواتب والسلف" data-fr="Salaires & Avances"></span></div>
+      <div class="nav-item" onclick="goTo('notifications',this)" id="nav-notifications"><span class="nav-icon">🔔</span> <span data-ar="الإشعارات" data-fr="Notifications"></span><span class="nav-badge" id="notifBadge" style="display:none">0</span></div>
       <div class="nav-label">الذكاء الاصطناعي / IA</div>
       <div class="nav-item" onclick="goTo('ai',this)" id="nav-ai"><span class="nav-icon">🤖</span> <span data-ar="مساعد AI" data-fr="Assistant IA"></span></div>
     </div>
@@ -1306,6 +1309,89 @@ body {
       </div>
     </div>
 
+    <!-- POINTAGE -->
+    <div class="page" id="page-pointage">
+      <div class="page-hdr">
+        <div>
+          <div class="page-ttl" data-ar="الحضور والغياب" data-fr="Pointage"></div>
+          <div class="page-sub" data-ar="تسجيل الحضور بالموقع الجغرافي" data-fr="Enregistrement de présence avec géolocalisation"></div>
+        </div>
+      </div>
+      <!-- Pointage Button for employees -->
+      <div id="pointageEmployeSection">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+          <div class="card" style="text-align:center;cursor:pointer;transition:all 0.2s" onclick="doPointage('arrivee')"
+            onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+            <div style="font-size:3rem;margin-bottom:12px">🟢</div>
+            <div style="font-size:1.1rem;font-weight:900;color:var(--green)" data-ar="تسجيل الوصول" data-fr="Enregistrer l'arrivée"></div>
+            <div style="font-size:0.8rem;color:var(--muted);margin-top:6px" data-ar="اضغط لتسجيل حضورك" data-fr="Appuyez pour pointer l'arrivée"></div>
+          </div>
+          <div class="card" style="text-align:center;cursor:pointer;transition:all 0.2s" onclick="doPointage('depart')"
+            onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+            <div style="font-size:3rem;margin-bottom:12px">🔴</div>
+            <div style="font-size:1.1rem;font-weight:900;color:var(--red)" data-ar="تسجيل المغادرة" data-fr="Enregistrer le départ"></div>
+            <div style="font-size:0.8rem;color:var(--muted);margin-top:6px" data-ar="اضغط لتسجيل مغادرتك" data-fr="Appuyez pour pointer le départ"></div>
+          </div>
+        </div>
+        <div class="card" id="pointageStatus" style="text-align:center;padding:16px;display:none">
+          <div id="pointageStatusMsg" style="font-size:0.9rem;font-weight:700"></div>
+          <div id="pointageStatusSub" style="font-size:0.78rem;color:var(--muted);margin-top:4px"></div>
+        </div>
+      </div>
+      <!-- Pointage History -->
+      <div class="card" style="margin-top:20px">
+        <div class="card-head">
+          <div class="card-title" data-ar="سجل الحضور" data-fr="Historique pointage"></div>
+          <div class="card-link" onclick="loadPointages()" data-ar="🔄 تحديث" data-fr="🔄 Actualiser"></div>
+        </div>
+        <div id="pointageList">
+          <div class="empty"><div class="empty-ic">📍</div><div class="empty-tt" data-ar="لا توجد سجلات بعد" data-fr="Aucun pointage encore"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SALAIRES -->
+    <div class="page" id="page-salaires">
+      <div class="page-hdr">
+        <div>
+          <div class="page-ttl" data-ar="الرواتب والسلف" data-fr="Salaires & Avances"></div>
+          <div class="page-sub" data-ar="إدارة رواتب الموظفين والسلف" data-fr="Gestion des salaires et avances"></div>
+        </div>
+        <button class="btn btn-primary" onclick="openSalaireModal()" id="addSalaireBtn">
+          + <span data-ar="إضافة راتب" data-fr="Ajouter salaire"></span>
+        </button>
+      </div>
+      <div class="tbl-wrap">
+        <table class="dtable">
+          <thead><tr>
+            <th data-ar="الموظف" data-fr="Employé"></th>
+            <th data-ar="الشهر" data-fr="Mois"></th>
+            <th data-ar="الراتب الأساسي" data-fr="Salaire base"></th>
+            <th data-ar="السلفة" data-fr="Avance"></th>
+            <th data-ar="الخصومات" data-fr="Déductions"></th>
+            <th data-ar="الصافي" data-fr="Net"></th>
+            <th data-ar="الحالة" data-fr="Statut"></th>
+            <th></th>
+          </tr></thead>
+          <tbody id="salairesBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="page" id="page-notifications">
+      <div class="page-hdr">
+        <div>
+          <div class="page-ttl" data-ar="الإشعارات" data-fr="Notifications"></div>
+          <div class="page-sub" data-ar="كل التنبيهات والإشعارات" data-fr="Toutes les alertes et notifications"></div>
+        </div>
+        <button class="btn btn-ghost" onclick="markAllRead()" data-ar="✓ تعليم الكل كمقروء" data-fr="✓ Tout marquer lu"></button>
+      </div>
+      <div id="notifList">
+        <div class="empty"><div class="empty-ic">🔔</div><div class="empty-tt" data-ar="لا توجد إشعارات" data-fr="Aucune notification"></div></div>
+      </div>
+    </div>
+
   </div><!-- end main -->
 </div><!-- end appShell -->
 
@@ -1330,13 +1416,56 @@ body {
   </div>
 </div>
 
+<!-- SALAIRE MODAL -->
+<div class="overlay" id="salaireOverlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-ttl" data-ar="إضافة/تعديل راتب" data-fr="Ajouter/Modifier salaire"></div>
+      <button class="modal-x" onclick="closeSalaireModal()">✕</button>
+    </div>
+    <div class="form-grid2">
+      <div class="fg full"><label class="flbl" data-ar="اسم الموظف" data-fr="Nom employé"></label><input class="finp" id="sName"></div>
+      <div class="fg"><label class="flbl" data-ar="الشهر" data-fr="Mois"></label>
+        <select class="finp" id="sMois">
+          <option value="01">جانفي / Janvier</option><option value="02">فيفري / Février</option>
+          <option value="03">مارس / Mars</option><option value="04">أفريل / Avril</option>
+          <option value="05">ماي / Mai</option><option value="06">جوان / Juin</option>
+          <option value="07">جويلية / Juillet</option><option value="08">أوت / Août</option>
+          <option value="09">سبتمبر / Septembre</option><option value="10">أكتوبر / Octobre</option>
+          <option value="11">نوفمبر / Novembre</option><option value="12">ديسمبر / Décembre</option>
+        </select>
+      </div>
+      <div class="fg"><label class="flbl" data-ar="السنة" data-fr="Année"></label><input class="finp" type="number" id="sAnnee" value="2026"></div>
+      <div class="fg"><label class="flbl" data-ar="الراتب الأساسي (د.ت)" data-fr="Salaire base (TND)"></label><input class="finp" type="number" id="sBase" placeholder="0.000" min="0" step="0.001"></div>
+      <div class="fg"><label class="flbl" data-ar="السلفة (د.ت)" data-fr="Avance (TND)"></label><input class="finp" type="number" id="sAvance" placeholder="0.000" min="0" step="0.001"></div>
+      <div class="fg"><label class="flbl" data-ar="الخصومات (د.ت)" data-fr="Déductions (TND)"></label><input class="finp" type="number" id="sDeductions" placeholder="0.000" min="0" step="0.001"></div>
+      <div class="fg full">
+        <label class="flbl" data-ar="الحالة" data-fr="Statut"></label>
+        <select class="finp" id="sStatut">
+          <option value="en_attente" data-ar="في الانتظار" data-fr="En attente">في الانتظار</option>
+          <option value="paye" data-ar="مدفوع" data-fr="Payé">مدفوع</option>
+          <option value="partiel" data-ar="مدفوع جزئياً" data-fr="Payé partiellement">مدفوع جزئياً</option>
+        </select>
+      </div>
+    </div>
+    <div style="background:var(--sky-50);border:1.5px solid var(--border);border-radius:var(--r-md);padding:14px;margin-top:14px;text-align:center">
+      <div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px" data-ar="الراتب الصافي" data-fr="Salaire net"></div>
+      <div id="sNetCalc" style="font-size:1.6rem;font-weight:900;font-family:var(--mono);color:var(--green)">0.000 د.ت</div>
+    </div>
+    <div class="modal-acts">
+      <button class="btn btn-ghost" onclick="closeSalaireModal()" data-ar="إلغاء" data-fr="Annuler"></button>
+      <button class="btn btn-primary" onclick="saveSalaire()">💾 <span data-ar="حفظ" data-fr="Enregistrer"></span></button>
+    </div>
+  </div>
+</div>
+
 <!-- BOTTOM NAV -->
 <div class="bnav">
   <div class="bnav-items">
     <div class="bnav-item active" onclick="goTo('dashboard',this)" id="bnav-dashboard"><div class="bnav-icon">⚡</div><span data-ar="الرئيسية" data-fr="Accueil"></span></div>
     <div class="bnav-item" onclick="goTo('products',this)" id="bnav-products"><div class="bnav-icon">📦</div><span data-ar="المنتجات" data-fr="Produits"></span></div>
-    <div class="bnav-item" onclick="goTo('analytics',this)" id="bnav-analytics"><div class="bnav-icon">📊</div><span data-ar="تحليلات" data-fr="Stats"></span></div>
-    <div class="bnav-item" onclick="goTo('chat',this)" id="bnav-chat"><div class="bnav-icon">💬</div><span data-ar="دردشة" data-fr="Chat"></span></div>
+    <div class="bnav-item" onclick="goTo('pointage',this)" id="bnav-pointage"><div class="bnav-icon">📍</div><span data-ar="حضور" data-fr="Pointage"></span></div>
+    <div class="bnav-item" onclick="goTo('notifications',this)" id="bnav-notifications"><div class="bnav-icon">🔔</div><span data-ar="إشعارات" data-fr="Notifs"></span></div>
     <div class="bnav-item" onclick="goTo('ai',this)" id="bnav-ai"><div class="bnav-icon">🤖</div><span data-ar="AI" data-fr="IA"></span></div>
   </div>
 </div>
@@ -1394,7 +1523,7 @@ let selectedRole = 'admin';
 // Avatar colors
 const AVATAR_COLORS = ['#2563EB','#7C3AED','#059669','#D97706','#DC2626','#0891B2'];
 const roleLabels = {admin:{ar:'مدير',fr:'Admin',color:'#7C3AED'}, manager:{ar:'مشرف',fr:'Manager',color:'#2563EB'}, caissier:{ar:'أمين صندوق',fr:'Caissier',color:'#059669'}, livreur:{ar:'موزع',fr:'Livreur',color:'#D97706'}};
-const pageNames = {dashboard:{ar:'لوحة التحكم',fr:'Tableau de bord'}, products:{ar:'المنتجات',fr:'Produits'}, analytics:{ar:'التحليلات',fr:'Analytiques'}, chat:{ar:'دردشة الفريق',fr:'Chat équipe'}, team:{ar:'إدارة الفريق',fr:'Gestion équipe'}, ai:{ar:'مساعد AI',fr:'Assistant IA'}};
+const pageNames = {dashboard:{ar:'لوحة التحكم',fr:'Tableau de bord'}, products:{ar:'المنتجات',fr:'Produits'}, analytics:{ar:'التحليلات',fr:'Analytiques'}, chat:{ar:'دردشة الفريق',fr:'Chat équipe'}, team:{ar:'إدارة الفريق',fr:'Gestion équipe'}, ai:{ar:'مساعد AI',fr:'Assistant IA'}, pointage:{ar:'الحضور والغياب',fr:'Pointage'}, salaires:{ar:'الرواتب والسلف',fr:'Salaires & Avances'}, notifications:{ar:'الإشعارات',fr:'Notifications'}};
 
 // ══════════════════════════════════════════
 //  UTILS
@@ -1570,7 +1699,13 @@ function showApp() {
   const topAv = document.getElementById('topUserAv');
   topAv.style.background = av; topAv.textContent = ini;
   // Role-based nav
-  if(role==='admin') document.getElementById('nav-team').style.display='flex';
+  if(role==='admin') {
+    document.getElementById('nav-team').style.display='flex';
+    document.getElementById('nav-salaires').style.display='flex';
+  }
+  if(['admin','manager'].includes(role)) {
+    document.getElementById('nav-salaires').style.display='flex';
+  }
   // Permissions
   if(role==='livreur') document.getElementById('addProdBtn').style.display='none';
   // Mobile menu btn
@@ -1587,6 +1722,7 @@ function showApp() {
   // Load data
   loadProducts();
   startChatPolling();
+  loadNotifications();
 }
 
 // ══════════════════════════════════════════
@@ -1605,6 +1741,9 @@ function goTo(page, el) {
   if(page==='ai') updateAiInsights();
   if(page==='chat') loadChatMsgs();
   if(page==='team') loadTeam();
+  if(page==='pointage') loadPointages();
+  if(page==='salaires') loadSalaires();
+  if(page==='notifications') loadNotifications();
   if(window.innerWidth<=768) document.getElementById('sidebar').classList.remove('open');
 }
 function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); }
@@ -1964,8 +2103,309 @@ document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target
 window.addEventListener('resize',()=>{ document.getElementById('menuBtn').style.display=window.innerWidth<=768?'flex':'none'; });
 
 // ══════════════════════════════════════════
-//  PWA INSTALL
+//  POINTAGE
 // ══════════════════════════════════════════
+async function doPointage(type) {
+  const statusDiv = document.getElementById('pointageStatus');
+  const statusMsg = document.getElementById('pointageStatusMsg');
+  const statusSub = document.getElementById('pointageStatusSub');
+  statusDiv.style.display = 'block';
+  statusMsg.textContent = currentLang==='ar' ? '📍 جاري تحديد موقعك...' : '📍 Localisation en cours...';
+  statusSub.textContent = '';
+  statusDiv.style.background = 'var(--accent-light)';
+  statusDiv.style.border = '1.5px solid var(--border)';
+
+  if(!navigator.geolocation) {
+    // Pointage without GPS
+    await savePointage(type, null, null, 'موقع غير متاح');
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      // Reverse geocode
+      let adresse = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      try {
+        const geo = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+        const geoData = await geo.json();
+        adresse = geoData.display_name?.split(',').slice(0,3).join(',') || adresse;
+      } catch(e) {}
+      await savePointage(type, lat, lng, adresse);
+    },
+    async (err) => {
+      await savePointage(type, null, null, 'موقع غير متاح');
+    },
+    { timeout: 10000, enableHighAccuracy: true }
+  );
+}
+
+async function savePointage(type, lat, lng, adresse) {
+  const statusMsg = document.getElementById('pointageStatusMsg');
+  const statusSub = document.getElementById('pointageStatusSub');
+  const statusDiv = document.getElementById('pointageStatus');
+  try {
+    const body = {
+      user_id: currentUser.id,
+      user_name: userProfile?.full_name || 'User',
+      user_role: userProfile?.role || 'employee',
+      type, latitude: lat, longitude: lng, adresse
+    };
+    await sb('pointages', {method:'POST', body:JSON.stringify(body), prefer:'return=minimal'});
+    const isArrivee = type === 'arrivee';
+    statusDiv.style.background = isArrivee ? 'var(--green-light)' : 'var(--red-light)';
+    statusDiv.style.border = `1.5px solid ${isArrivee ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`;
+    statusMsg.style.color = isArrivee ? 'var(--green)' : 'var(--red)';
+    statusMsg.textContent = isArrivee ?
+      (currentLang==='ar' ? '✅ تم تسجيل وصولك بنجاح!' : '✅ Arrivée enregistrée!') :
+      (currentLang==='ar' ? '✅ تم تسجيل مغادرتك بنجاح!' : '✅ Départ enregistré!');
+    statusSub.textContent = `📍 ${adresse} • ${new Date().toLocaleTimeString('ar-TN')}`;
+
+    // Send notification to admin
+    await sendNotificationToAdmin(
+      type === 'arrivee' ? 'pointage_arrivee' : 'pointage_depart',
+      type === 'arrivee' ? `${userProfile?.full_name} وصل للعمل 🟢` : `${userProfile?.full_name} غادر العمل 🔴`,
+      `📍 ${adresse} — ${new Date().toLocaleTimeString('ar-TN')}`
+    );
+    toast(currentLang==='ar' ? '✅ تم تسجيل الحضور' : '✅ Pointage enregistré', 's');
+    await loadPointages();
+  } catch(e) {
+    statusMsg.style.color = 'var(--red)';
+    statusMsg.textContent = '❌ ' + e.message;
+  }
+}
+
+async function loadPointages() {
+  try {
+    const isAdmin = ['admin','manager'].includes(userProfile?.role);
+    const query = isAdmin
+      ? 'pointages?select=*&order=created_at.desc&limit=30'
+      : `pointages?user_id=eq.${currentUser.id}&select=*&order=created_at.desc&limit=20`;
+    const data = await sb(query);
+    const container = document.getElementById('pointageList');
+    if(!data || !data.length) {
+      container.innerHTML = `<div class="empty"><div class="empty-ic">📍</div><div class="empty-tt">${currentLang==='ar'?'لا توجد سجلات بعد':'Aucun pointage encore'}</div></div>`;
+      return;
+    }
+    container.innerHTML = data.map(p => {
+      const isArrivee = p.type === 'arrivee';
+      const dt = new Date(p.created_at);
+      const dateStr = dt.toLocaleDateString('ar-TN');
+      const timeStr = dt.toLocaleTimeString('ar-TN', {hour:'2-digit', minute:'2-digit'});
+      return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+        <div style="width:40px;height:40px;border-radius:12px;background:${isArrivee?'var(--green-light)':'var(--red-light)'};
+          display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">
+          ${isArrivee?'🟢':'🔴'}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:0.86rem;font-weight:700;color:var(--text)">${p.user_name}</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            📍 ${p.adresse||'—'}</div>
+        </div>
+        <div style="text-align:left;flex-shrink:0">
+          <div style="font-size:0.78rem;font-weight:800;color:${isArrivee?'var(--green)':'var(--red)'}">
+            ${isArrivee?(currentLang==='ar'?'وصول':'Arrivée'):(currentLang==='ar'?'مغادرة':'Départ')}
+          </div>
+          <div style="font-size:0.72rem;color:var(--muted);font-family:var(--mono)">${timeStr}<br>${dateStr}</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+// ══════════════════════════════════════════
+//  SALAIRES
+// ══════════════════════════════════════════
+let editingSalaireId = null;
+
+function openSalaireModal(id=null) {
+  editingSalaireId = id;
+  if(id) {
+    const s = salairesList?.find(x=>x.id===id);
+    if(s) {
+      document.getElementById('sName').value = s.user_name;
+      document.getElementById('sMois').value = s.mois;
+      document.getElementById('sAnnee').value = s.annee;
+      document.getElementById('sBase').value = s.salaire_base;
+      document.getElementById('sAvance').value = s.avance;
+      document.getElementById('sDeductions').value = s.deductions;
+      document.getElementById('sStatut').value = s.statut;
+      calcNet();
+    }
+  } else {
+    ['sName','sBase','sAvance','sDeductions'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('sMois').value = String(new Date().getMonth()+1).padStart(2,'0');
+    document.getElementById('sAnnee').value = new Date().getFullYear();
+    document.getElementById('sStatut').value = 'en_attente';
+    document.getElementById('sNetCalc').textContent = '0.000 د.ت';
+  }
+  document.getElementById('salaireOverlay').classList.add('open');
+}
+function closeSalaireModal() { document.getElementById('salaireOverlay').classList.remove('open'); }
+
+function calcNet() {
+  const base = +document.getElementById('sBase').value||0;
+  const avance = +document.getElementById('sAvance').value||0;
+  const ded = +document.getElementById('sDeductions').value||0;
+  const net = base - avance - ded;
+  document.getElementById('sNetCalc').textContent = net.toFixed(3) + ' د.ت';
+  document.getElementById('sNetCalc').style.color = net >= 0 ? 'var(--green)' : 'var(--red)';
+}
+['sBase','sAvance','sDeductions'].forEach(fid => {
+  setTimeout(() => {
+    const el = document.getElementById(fid);
+    if(el) el.addEventListener('input', calcNet);
+  }, 500);
+});
+
+let salairesList = [];
+
+async function loadSalaires() {
+  try {
+    const data = await sb('salaires?select=*&order=created_at.desc');
+    salairesList = data || [];
+    renderSalaires();
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+function renderSalaires() {
+  const tbody = document.getElementById('salairesBody');
+  if(!salairesList.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty"><div class="empty-ic">💵</div><div class="empty-tt">${currentLang==='ar'?'لا توجد رواتب بعد':'Aucun salaire encore'}</div></div></td></tr>`;
+    return;
+  }
+  const moisNames = {ar:['','جانفي','فيفري','مارس','أفريل','ماي','جوان','جويلية','أوت','سبتمبر','أكتوبر','نوفمبر','ديسمبر'],
+    fr:['','Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']};
+  const statutColors = {en_attente:'var(--orange)',paye:'var(--green)',partiel:'var(--accent)'};
+  const statutLabels = {ar:{en_attente:'في الانتظار',paye:'مدفوع',partiel:'جزئي'}, fr:{en_attente:'En attente',paye:'Payé',partiel:'Partiel'}};
+  tbody.innerHTML = salairesList.map(s => {
+    const net = (s.salaire_base - s.avance - s.deductions).toFixed(3);
+    const canEdit = ['admin','manager'].includes(userProfile?.role);
+    return `<tr>
+      <td><strong>${s.user_name}</strong></td>
+      <td style="font-family:var(--mono);font-size:0.82rem">${moisNames[currentLang][+s.mois]} ${s.annee}</td>
+      <td style="font-family:var(--mono)">${(+s.salaire_base).toFixed(3)}</td>
+      <td style="font-family:var(--mono);color:var(--orange)">${(+s.avance).toFixed(3)}</td>
+      <td style="font-family:var(--mono);color:var(--red)">${(+s.deductions).toFixed(3)}</td>
+      <td style="font-family:var(--mono);font-weight:800;color:var(--green)">${net}</td>
+      <td><span style="background:${statutColors[s.statut]}20;color:${statutColors[s.statut]};
+        padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:800">
+        ${statutLabels[currentLang][s.statut]||s.statut}</span></td>
+      <td><div class="act-cell">
+        ${canEdit?`<button class="btn btn-ghost btn-sm" onclick="openSalaireModal('${s.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteSalaire('${s.id}')">🗑</button>`:'—'}
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+async function saveSalaire() {
+  const name = document.getElementById('sName').value.trim();
+  const mois = document.getElementById('sMois').value;
+  const annee = +document.getElementById('sAnnee').value;
+  const base = +document.getElementById('sBase').value||0;
+  const avance = +document.getElementById('sAvance').value||0;
+  const deductions = +document.getElementById('sDeductions').value||0;
+  const statut = document.getElementById('sStatut').value;
+  if(!name){ toast(currentLang==='ar'?'أدخل اسم الموظف':'Entrez le nom','e'); return; }
+  const body = JSON.stringify({user_id:currentUser.id, user_name:name, salaire_base:base, avance, deductions, mois, annee, statut});
+  showLoad(true);
+  try {
+    if(editingSalaireId) await sb('salaires?id=eq.'+editingSalaireId,{method:'PATCH',body,prefer:'return=minimal'});
+    else await sb('salaires',{method:'POST',body,prefer:'return=minimal'});
+    toast(currentLang==='ar'?'✅ تم الحفظ':'✅ Enregistré','s');
+    closeSalaireModal(); await loadSalaires();
+  } catch(e){ toast(e.message,'e'); }
+  showLoad(false);
+}
+
+async function deleteSalaire(id) {
+  if(!confirm(currentLang==='ar'?'تأكيد الحذف؟':'Confirmer la suppression?')) return;
+  try { await sb('salaires?id=eq.'+id,{method:'DELETE',prefer:'return=minimal'}); await loadSalaires(); toast('🗑️','s'); }
+  catch(e){ toast(e.message,'e'); }
+}
+
+// ══════════════════════════════════════════
+//  NOTIFICATIONS
+// ══════════════════════════════════════════
+async function sendNotificationToAdmin(type, titre, message) {
+  try {
+    // Get all admins/managers
+    const admins = await sb('user_profiles?role=in.(admin,manager)&select=id');
+    if(!admins?.length) return;
+    for(const admin of admins) {
+      if(admin.id === currentUser.id) continue; // Don't notify yourself
+      await sb('notifications', {
+        method:'POST',
+        body:JSON.stringify({
+          destinataire_id: admin.id,
+          expediteur_name: userProfile?.full_name || 'Employé',
+          type, titre, message
+        }),
+        prefer:'return=minimal'
+      });
+    }
+  } catch(e) { console.error('Notification error:', e); }
+}
+
+async function loadNotifications() {
+  try {
+    const data = await sb(`notifications?destinataire_id=eq.${currentUser.id}&select=*&order=created_at.desc&limit=50`);
+    const unread = data?.filter(n=>!n.lu).length || 0;
+    // Update badge
+    const badge = document.getElementById('notifBadge');
+    if(badge) { badge.style.display = unread > 0 ? 'inline' : 'none'; badge.textContent = unread; }
+    // Update topbar dot
+    document.getElementById('notifBtn')?.classList.toggle('notif-dot', unread > 0);
+    const container = document.getElementById('notifList');
+    if(!container) return;
+    if(!data?.length) {
+      container.innerHTML = `<div class="empty"><div class="empty-ic">🔔</div><div class="empty-tt">${currentLang==='ar'?'لا توجد إشعارات':'Aucune notification'}</div></div>`;
+      return;
+    }
+    const typeIcons = {pointage_arrivee:'🟢', pointage_depart:'🔴', stock_low:'⚠️', message:'💬', default:'🔔'};
+    container.innerHTML = data.map(n => {
+      const dt = new Date(n.created_at);
+      const timeStr = dt.toLocaleTimeString('ar-TN',{hour:'2-digit',minute:'2-digit'});
+      const dateStr = dt.toLocaleDateString('ar-TN');
+      const icon = typeIcons[n.type] || typeIcons.default;
+      return `<div onclick="markRead('${n.id}')" style="display:flex;gap:12px;padding:16px;margin-bottom:8px;
+        background:${n.lu?'var(--surface)':'var(--accent-light)'};
+        border:1.5px solid ${n.lu?'var(--border)':'var(--border2)'};
+        border-radius:var(--r-md);cursor:pointer;transition:all 0.2s"
+        onmouseover="this.style.transform='translateX(-3px)'" onmouseout="this.style.transform=''">
+        <div style="width:44px;height:44px;border-radius:12px;background:${n.lu?'var(--surface2)':'var(--accent-soft)'};
+          display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">${icon}</div>
+        <div style="flex:1">
+          <div style="font-size:0.88rem;font-weight:${n.lu?'600':'800'};color:var(--text)">${n.titre}</div>
+          <div style="font-size:0.78rem;color:var(--text2);margin-top:3px">${n.message}</div>
+          <div style="font-size:0.7rem;color:var(--muted);margin-top:5px">👤 ${n.expediteur_name} • ${timeStr} ${dateStr}</div>
+        </div>
+        ${!n.lu?'<div style="width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:6px"></div>':''}
+      </div>`;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function markRead(id) {
+  try {
+    await sb('notifications?id=eq.'+id, {method:'PATCH', body:JSON.stringify({lu:true}), prefer:'return=minimal'});
+    await loadNotifications();
+  } catch(e) {}
+}
+
+async function markAllRead() {
+  try {
+    await sb(`notifications?destinataire_id=eq.${currentUser.id}&lu=eq.false`,
+      {method:'PATCH', body:JSON.stringify({lu:true}), prefer:'return=minimal'});
+    await loadNotifications();
+    toast(currentLang==='ar'?'✅ تم تعليم الكل كمقروء':'✅ Tout marqué comme lu','s');
+  } catch(e) {}
+}
+
+// Auto-refresh notifications every 30s
+setInterval(loadNotifications, 30000);
 let deferredPrompt = null;
 
 window.addEventListener('beforeinstallprompt', (e) => {
