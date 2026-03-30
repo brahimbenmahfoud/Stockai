@@ -1529,6 +1529,7 @@ function showApp() {
   loadProducts();
   startChatPolling();
   loadNotifications();
+  startNotifPolling();
 }
 
 // ══════════════════════════════════════════
@@ -1812,16 +1813,26 @@ function startChatPolling() {
 async function loadTeam() {
   showLoad(true);
   try {
-    const data = await sb('user_profiles?select=*');
+    const data = await sb('user_profiles?select=*&order=created_at.asc');
     const grid = document.getElementById('teamGrid');
-    if(!data?.length){ grid.innerHTML=`<div class="empty"><div class="empty-ic">👥</div><div class="empty-tt">${currentLang==='ar'?'لا توجد بيانات':'Pas de données'}</div></div>`; return; }
-    grid.innerHTML = data.map(u=>`<div class="team-card">
-      <div class="team-av" style="background:${u.avatar_color||'#2563EB'}">${initials(u.full_name)}</div>
-      <div class="team-name">${u.full_name}</div>
-      <div style="margin-bottom:8px"><span class="role-tag role-${u.role}">${roleLabels[u.role]?.[currentLang]||u.role}</span></div>
-      <div style="font-size:0.72rem;color:var(--muted)">${new Date(u.created_at).toLocaleDateString(currentLang==='ar'?'ar-TN':'fr-TN')}</div>
-    </div>`).join('');
-  } catch(e){ toast(e.message,'e'); }
+    if(!data?.length) {
+      grid.innerHTML=`<div class="empty"><div class="empty-ic">👥</div><div class="empty-tt">${currentLang==='ar'?'لا يوجد أعضاء بعد':'Aucun membre encore'}</div></div>`;
+      showLoad(false); return;
+    }
+    grid.innerHTML = data.map(u => {
+      const isMe = u.id === currentUser?.id;
+      const avColor = u.avatar_color || '#D4AF37';
+      return `<div class="team-card" style="${isMe?'border-color:rgba(212,175,55,0.4);':''}">
+        <div style="position:relative;display:inline-block;margin:0 auto 14px">
+          <div class="team-av" style="background:${avColor}">${initials(u.full_name)}</div>
+          ${isMe?'<div style="position:absolute;top:-4px;right:-4px;background:var(--gold);color:#0A0A0A;font-size:0.55rem;font-weight:800;padding:2px 5px;border-radius:20px;font-family:var(--mono)">أنا</div>':''}
+        </div>
+        <div class="team-name">${u.full_name}</div>
+        <div style="margin-bottom:8px"><span class="role-tag role-${u.role}">${roleLabels[u.role]?.[currentLang]||u.role}</span></div>
+        <div style="font-size:0.72rem;color:var(--muted);font-family:var(--mono)">${new Date(u.created_at).toLocaleDateString(currentLang==='ar'?'ar-TN':'fr-TN')}</div>
+      </div>`;
+    }).join('');
+  } catch(e) { toast(e.message,'e'); }
   showLoad(false);
 }
 
@@ -2137,11 +2148,11 @@ async function deleteSalaire(id) {
 // ══════════════════════════════════════════
 async function sendNotificationToAdmin(type, titre, message) {
   try {
-    // Get all admins/managers
-    const admins = await sb('user_profiles?role=in.(admin,manager)&select=id');
+    // Get all admins and managers separately (Supabase doesn't support in() with text easily)
+    const admins = await sb('user_profiles?select=id&or=(role.eq.admin,role.eq.manager)');
     if(!admins?.length) return;
     for(const admin of admins) {
-      if(admin.id === currentUser.id) continue; // Don't notify yourself
+      if(admin.id === currentUser?.id) continue;
       await sb('notifications', {
         method:'POST',
         body:JSON.stringify({
@@ -2156,13 +2167,12 @@ async function sendNotificationToAdmin(type, titre, message) {
 }
 
 async function loadNotifications() {
+  if(!currentUser?.id) return;
   try {
     const data = await sb(`notifications?destinataire_id=eq.${currentUser.id}&select=*&order=created_at.desc&limit=50`);
     const unread = data?.filter(n=>!n.lu).length || 0;
-    // Update badge
     const badge = document.getElementById('notifBadge');
     if(badge) { badge.style.display = unread > 0 ? 'inline' : 'none'; badge.textContent = unread; }
-    // Update topbar dot
     document.getElementById('notifBtn')?.classList.toggle('notif-dot', unread > 0);
     const container = document.getElementById('notifList');
     if(!container) return;
@@ -2176,22 +2186,23 @@ async function loadNotifications() {
       const timeStr = dt.toLocaleTimeString('ar-TN',{hour:'2-digit',minute:'2-digit'});
       const dateStr = dt.toLocaleDateString('ar-TN');
       const icon = typeIcons[n.type] || typeIcons.default;
+      const unreadBg = n.lu ? 'var(--surface)' : 'rgba(212,175,55,0.08)';
+      const unreadBorder = n.lu ? 'var(--border)' : 'rgba(212,175,55,0.3)';
       return `<div onclick="markRead('${n.id}')" style="display:flex;gap:12px;padding:16px;margin-bottom:8px;
-        background:${n.lu?'var(--surface)':'var(--accent-light)'};
-        border:1.5px solid ${n.lu?'var(--border)':'var(--border2)'};
+        background:${unreadBg}; border:1px solid ${unreadBorder};
         border-radius:var(--r-md);cursor:pointer;transition:all 0.2s"
-        onmouseover="this.style.transform='translateX(-3px)'" onmouseout="this.style.transform=''">
-        <div style="width:44px;height:44px;border-radius:12px;background:${n.lu?'var(--surface2)':'var(--accent-soft)'};
+        onmouseover="this.style.borderColor='rgba(212,175,55,0.5)'" onmouseout="this.style.borderColor='${unreadBorder}'">
+        <div style="width:44px;height:44px;border-radius:12px;background:${n.lu?'var(--surface2)':'rgba(212,175,55,0.15)'};
           display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">${icon}</div>
-        <div style="flex:1">
+        <div style="flex:1;min-width:0">
           <div style="font-size:0.88rem;font-weight:${n.lu?'600':'800'};color:var(--text)">${n.titre}</div>
           <div style="font-size:0.78rem;color:var(--text2);margin-top:3px">${n.message}</div>
           <div style="font-size:0.7rem;color:var(--muted);margin-top:5px">👤 ${n.expediteur_name} • ${timeStr} ${dateStr}</div>
         </div>
-        ${!n.lu?'<div style="width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:6px"></div>':''}
+        ${!n.lu?`<div style="width:8px;height:8px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:6px;box-shadow:0 0 6px var(--gold-glow)"></div>`:''}
       </div>`;
     }).join('');
-  } catch(e) { console.error(e); }
+  } catch(e) { console.error('loadNotifications error:', e); }
 }
 
 async function markRead(id) {
@@ -2210,8 +2221,12 @@ async function markAllRead() {
   } catch(e) {}
 }
 
-// Auto-refresh notifications every 30s
-setInterval(loadNotifications, 30000);
+// Auto-refresh notifications every 30s (only when logged in)
+let notifInterval = null;
+function startNotifPolling() {
+  if(notifInterval) clearInterval(notifInterval);
+  notifInterval = setInterval(() => { if(currentUser) loadNotifications(); }, 30000);
+}
 let deferredPrompt = null;
 
 window.addEventListener('beforeinstallprompt', (e) => {
