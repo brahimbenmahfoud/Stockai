@@ -2023,8 +2023,11 @@ async function loadTeam() {
 // ══════════════════════════════════════════
 //  AI CHAT
 // ══════════════════════════════════════════
+const GEMINI_KEY = 'AIzaSyApufqsHXWWaKJgVB47GLotsqrtFdR09Lc';
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+
 function getStockCtx(){
-  return `أنت مساعد ذكي لإدارة المخزون. تجاوب بالعربية أو الفرنسية حسب لغة السؤال. كن موجزاً ومفيداً.
+  return `أنت مساعد ذكي لإدارة المخزون اسمك StockAI. تجاوب بالعربية أو الفرنسية حسب لغة السؤال. كن موجزاً ومفيداً ومباشراً.
 
 بيانات المخزون (${new Date().toLocaleDateString('ar-TN')}):
 المستخدم الحالي: ${userProfile?.full_name} (${userProfile?.role})
@@ -2032,6 +2035,7 @@ function getStockCtx(){
 القيمة الإجمالية: ${fmt(products.reduce((s,p)=>s+p.price*p.qty,0))} دينار تونسي
 منتجات حرجة: ${products.filter(p=>getStatus(p.qty,p.minQty)==='critical').map(p=>p.name+'('+p.qty+')').join(', ')||'لا يوجد'}
 منتجات منخفضة: ${products.filter(p=>getStatus(p.qty,p.minQty)==='low').map(p=>p.name).join(', ')||'لا يوجد'}
+آخر حركات المخزون: ${mouvementsList.slice(0,5).map(m=>`${m.type==='entree'?'📥':'📤'} ${m.product_name} (${m.quantite})`).join(', ')||'لا يوجد'}
 
 قائمة المنتجات:
 ${products.map(p=>`• ${p.name} | ${p.category} | الكمية: ${p.qty} | الحد: ${p.minQty} | السعر: ${p.price} TND`).join('\n')||'لا توجد منتجات'}
@@ -2049,10 +2053,19 @@ async function sendAIMsg(){
   const typId=addTyping();
   document.getElementById('aiSendBtn').disabled=true;
   try {
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:getStockCtx(),messages:[{role:'user',content:msg}]})});
-    const data=await res.json();
+    const res = await fetch(GEMINI_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        system_instruction:{ parts:[{text: getStockCtx()}] },
+        contents:[{ role:'user', parts:[{text: msg}] }],
+        generationConfig:{ maxOutputTokens:1000, temperature:0.7 }
+      })
+    });
+    const data = await res.json();
     removeTyping(typId);
-    const text=data.content?.map(b=>b.text||'').join('')||'Error';
+    if(data.error){ addAIMsg('❌ '+data.error.message,'ai'); return; }
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || (currentLang==='ar'?'لم أفهم السؤال':'Je n\'ai pas compris');
     if(text.includes('ADD_PRODUCT:')){
       try{
         const jsonStr=text.split('ADD_PRODUCT:')[1].trim();
@@ -2062,8 +2075,11 @@ async function sendAIMsg(){
         addAIMsg(text.split('ADD_PRODUCT:')[0].trim()+'\n\n✅ '+(currentLang==='ar'?'تم إضافة المنتج تلقائياً!':'Produit ajouté automatiquement!'),'ai');
         toast(currentLang==='ar'?'✅ أضاف AI منتجاً':'✅ IA a ajouté un produit','s');
       }catch{ addAIMsg(text,'ai'); }
-    } else addAIMsg(text,'ai');
-  } catch(e){ removeTyping(typId); addAIMsg(currentLang==='ar'?'خطأ في الاتصال':'Erreur de connexion','ai'); }
+    } else { addAIMsg(text,'ai'); }
+  } catch(e){
+    removeTyping(typId);
+    addAIMsg(currentLang==='ar'?'❌ خطأ في الاتصال بـ AI':'❌ Erreur de connexion IA','ai');
+  }
   document.getElementById('aiSendBtn').disabled=false;
 }
 
