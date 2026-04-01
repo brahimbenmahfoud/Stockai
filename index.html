@@ -2024,7 +2024,7 @@ async function loadTeam() {
 //  AI CHAT
 // ══════════════════════════════════════════
 const GEMINI_KEY = 'AIzaSyAhQTHysBfNxFFdAL8TWEJtiSddZmsU_9s';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
 
 function getStockCtx(){
   return `أنت مساعد ذكي لإدارة المخزون اسمك StockAI. تجاوب بالعربية أو الفرنسية حسب لغة السؤال. كن موجزاً ومفيداً ومباشراً.
@@ -2057,8 +2057,10 @@ async function sendAIMsg(){
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        system_instruction:{ parts:[{text: getStockCtx()}] },
-        contents:[{ role:'user', parts:[{text: msg}] }],
+        contents:[{
+          role:'user',
+          parts:[{text: getStockCtx() + '\n\nسؤال المستخدم: ' + msg}]
+        }],
         generationConfig:{ maxOutputTokens:1000, temperature:0.7 }
       })
     });
