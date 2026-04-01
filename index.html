@@ -873,6 +873,7 @@ body::before {
       <div class="nav-item" onclick="goTo('chat',this)" id="nav-chat" title="الدردشة"><span class="nav-icon">💬</span> <span data-ar="دردشة الفريق" data-fr="Chat équipe"></span><span class="chat-badge" id="chatBadge" style="display:none">●</span></div>
       <div class="nav-item" onclick="goTo('team',this)" id="nav-team" title="الفريق" style="display:none"><span class="nav-icon">👥</span> <span data-ar="إدارة الفريق" data-fr="Gestion équipe"></span></div>
       <div class="nav-item" onclick="goTo('pointage',this)" id="nav-pointage" title="الحضور"><span class="nav-icon">📍</span> <span data-ar="الحضور والغياب" data-fr="Pointage"></span></div>
+      <div class="nav-item" onclick="goTo('mouvements',this)" id="nav-mouvements" title="حركة المخزون"><span class="nav-icon">🔄</span> <span data-ar="حركة المخزون" data-fr="Mouvements stock"></span></div>
       <div class="nav-item" onclick="goTo('salaires',this)" id="nav-salaires" title="الرواتب" style="display:none"><span class="nav-icon">💵</span> <span data-ar="الرواتب والسلف" data-fr="Salaires & Avances"></span></div>
       <div class="nav-item" onclick="goTo('notifications',this)" id="nav-notifications" title="الإشعارات"><span class="nav-icon">🔔</span> <span data-ar="الإشعارات" data-fr="Notifications"></span><span class="nav-badge" id="notifBadge" style="display:none">0</span></div>
       <div class="nav-label">الذكاء الاصطناعي / IA</div>
@@ -1067,6 +1068,71 @@ body::before {
       <div class="team-grid" id="teamGrid"></div>
     </div>
 
+    <!-- MOUVEMENTS -->
+    <div class="page" id="page-mouvements">
+      <div class="page-hdr">
+        <div>
+          <div class="page-ttl" data-ar="حركة المخزون" data-fr="Mouvements de stock"></div>
+          <div class="page-sub" data-ar="تسجيل الدخول والخروج والتعديلات" data-fr="Entrées, sorties et ajustements"></div>
+        </div>
+        <button class="btn btn-primary" onclick="openMvtModal()">
+          + <span data-ar="تسجيل حركة" data-fr="Enregistrer mouvement"></span>
+        </button>
+      </div>
+
+      <!-- Stats rapides -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px">
+        <div class="card" style="text-align:center;padding:16px">
+          <div style="font-size:1.8rem;margin-bottom:6px">📥</div>
+          <div style="font-size:1.4rem;font-weight:900;font-family:var(--mono);color:#4ADE80" id="mvtTotalEntree">0</div>
+          <div style="font-size:0.78rem;color:var(--muted);margin-top:3px" data-ar="إجمالي الدخول" data-fr="Total entrées"></div>
+        </div>
+        <div class="card" style="text-align:center;padding:16px">
+          <div style="font-size:1.8rem;margin-bottom:6px">📤</div>
+          <div style="font-size:1.4rem;font-weight:900;font-family:var(--mono);color:#FCA5A5" id="mvtTotalSortie">0</div>
+          <div style="font-size:0.78rem;color:var(--muted);margin-top:3px" data-ar="إجمالي الخروج" data-fr="Total sorties"></div>
+        </div>
+        <div class="card" style="text-align:center;padding:16px">
+          <div style="font-size:1.8rem;margin-bottom:6px">🔄</div>
+          <div style="font-size:1.4rem;font-weight:900;font-family:var(--mono);color:var(--gold)" id="mvtTotal">0</div>
+          <div style="font-size:0.78rem;color:var(--muted);margin-top:3px" data-ar="إجمالي العمليات" data-fr="Total opérations"></div>
+        </div>
+      </div>
+
+      <!-- Filtres -->
+      <div class="toolbar" style="margin-bottom:16px">
+        <select class="filt-sel" id="mvtTypeFilter" onchange="renderMouvements()">
+          <option value="" data-ar="كل الحركات" data-fr="Tous les mouvements">كل الحركات</option>
+          <option value="entree" data-ar="📥 دخول" data-fr="📥 Entrées">📥 دخول</option>
+          <option value="sortie" data-ar="📤 خروج" data-fr="📤 Sorties">📤 خروج</option>
+          <option value="ajustement" data-ar="🔄 تعديل" data-fr="🔄 Ajustement">🔄 تعديل</option>
+        </select>
+        <select class="filt-sel" id="mvtProdFilter" onchange="renderMouvements()">
+          <option value="">كل المنتجات</option>
+        </select>
+        <div class="srch-wrap" style="max-width:200px">
+          <span class="srch-ic">🔍</span>
+          <input class="srch-inp" id="mvtSearch" placeholder="" oninput="renderMouvements()">
+        </div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table class="dtable">
+          <thead><tr>
+            <th data-ar="المنتج" data-fr="Produit"></th>
+            <th data-ar="النوع" data-fr="Type"></th>
+            <th data-ar="الكمية" data-fr="Quantité"></th>
+            <th data-ar="قبل" data-fr="Avant"></th>
+            <th data-ar="بعد" data-fr="Après"></th>
+            <th data-ar="السبب" data-fr="Raison"></th>
+            <th data-ar="بواسطة" data-fr="Par"></th>
+            <th data-ar="التاريخ" data-fr="Date"></th>
+          </tr></thead>
+          <tbody id="mvtBody"></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- AI -->
     <div class="page" id="page-ai">
       <div class="page-hdr">
@@ -1222,6 +1288,123 @@ body::before {
   </div>
 </div>
 
+<!-- MOUVEMENT MODAL -->
+<div class="overlay" id="mvtOverlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-ttl" data-ar="تسجيل حركة مخزون" data-fr="Enregistrer un mouvement"></div>
+      <button class="modal-x" onclick="closeMvtModal()">✕</button>
+    </div>
+
+    <!-- Type selector -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
+      <div class="mvt-type-btn active" id="mvtBtn-entree" onclick="selectMvtType('entree')"
+        style="padding:12px;border-radius:var(--r-md);border:1.5px solid rgba(74,222,128,0.4);
+        background:rgba(74,222,128,0.1);cursor:pointer;text-align:center;transition:all 0.2s">
+        <div style="font-size:1.5rem">📥</div>
+        <div style="font-size:0.78rem;font-weight:800;color:#4ADE80;margin-top:4px" data-ar="دخول" data-fr="Entrée"></div>
+      </div>
+      <div class="mvt-type-btn" id="mvtBtn-sortie" onclick="selectMvtType('sortie')"
+        style="padding:12px;border-radius:var(--r-md);border:1px solid var(--border);
+        background:var(--surface2);cursor:pointer;text-align:center;transition:all 0.2s">
+        <div style="font-size:1.5rem">📤</div>
+        <div style="font-size:0.78rem;font-weight:800;color:var(--muted);margin-top:4px" data-ar="خروج" data-fr="Sortie"></div>
+      </div>
+      <div class="mvt-type-btn" id="mvtBtn-ajustement" onclick="selectMvtType('ajustement')"
+        style="padding:12px;border-radius:var(--r-md);border:1px solid var(--border);
+        background:var(--surface2);cursor:pointer;text-align:center;transition:all 0.2s">
+        <div style="font-size:1.5rem">🔄</div>
+        <div style="font-size:0.78rem;font-weight:800;color:var(--muted);margin-top:4px" data-ar="تعديل" data-fr="Ajustement"></div>
+      </div>
+    </div>
+
+    <div class="form-grid2">
+      <div class="fg full">
+        <label class="flbl" data-ar="المنتج *" data-fr="Produit *"></label>
+        <select class="finp" id="mvtProduct" onchange="updateMvtStock()">
+          <option value="">— اختر منتج —</option>
+        </select>
+      </div>
+      <div class="fg full" id="mvtStockInfo" style="display:none">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;
+          display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:0.8rem;color:var(--text2)" data-ar="المخزون الحالي:" data-fr="Stock actuel:"></span>
+          <span style="font-family:var(--mono);font-weight:800;color:var(--gold)" id="mvtCurrentStock">—</span>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="flbl" data-ar="الكمية *" data-fr="Quantité *"></label>
+        <input class="finp" type="number" id="mvtQte" min="0.001" step="0.001" placeholder="0.000" oninput="updateMvtPreview()">
+      </div>
+      <div class="fg">
+        <label class="flbl" data-ar="الوحدة" data-fr="Unité"></label>
+        <select class="finp" id="mvtUnit">
+          <option value="pièce">قطعة / Pièce</option>
+          <option value="kg">كيلوغرام / Kg</option>
+          <option value="g">غرام / G</option>
+          <option value="L">لتر / L</option>
+          <option value="boîte">علبة / Boîte</option>
+          <option value="sac">كيس / Sac</option>
+        </select>
+      </div>
+      <div class="fg full">
+        <label class="flbl" data-ar="السبب *" data-fr="Raison *"></label>
+        <select class="finp" id="mvtRaison">
+          <option value="" data-ar="— اختر السبب —" data-fr="— Choisir raison —">— اختر السبب —</option>
+          <!-- Entrée -->
+          <optgroup label="📥 دخول / Entrées" id="mvtRaisonEntree">
+            <option value="achat">شراء / Achat</option>
+            <option value="retour_client">إرجاع زبون / Retour client</option>
+            <option value="transfert_entree">تحويل دخول / Transfert entrée</option>
+          </optgroup>
+          <!-- Sortie -->
+          <optgroup label="📤 خروج / Sorties" id="mvtRaisonSortie">
+            <option value="vente">بيع / Vente</option>
+            <option value="utilisation">استخدام / Utilisation</option>
+            <option value="perte">خسارة/تلف / Perte</option>
+            <option value="don">هبة / Don</option>
+            <option value="transfert_sortie">تحويل خروج / Transfert sortie</option>
+          </optgroup>
+          <!-- Ajustement -->
+          <optgroup label="🔄 تعديل / Ajustement" id="mvtRaisonAjust">
+            <option value="inventaire">جرد / Inventaire</option>
+            <option value="correction">تصحيح / Correction</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="fg full">
+        <label class="flbl" data-ar="ملاحظة (اختياري)" data-fr="Note (optionnel)"></label>
+        <input class="finp" id="mvtNote" placeholder="">
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div id="mvtPreview" style="display:none;background:var(--surface2);border:1px solid rgba(212,175,55,0.2);
+      border-radius:var(--r-md);padding:14px;margin-top:14px">
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:8px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase"
+        data-ar="معاينة التغيير" data-fr="Aperçu du changement"></div>
+      <div style="display:flex;align-items:center;gap:12px;justify-content:center">
+        <div style="text-align:center">
+          <div style="font-size:0.72rem;color:var(--muted)" data-ar="قبل" data-fr="Avant"></div>
+          <div style="font-size:1.4rem;font-weight:900;font-family:var(--mono)" id="prevBefore">—</div>
+        </div>
+        <div style="font-size:1.5rem" id="prevArrow">➡️</div>
+        <div style="text-align:center">
+          <div style="font-size:0.72rem;color:var(--muted)" data-ar="بعد" data-fr="Après"></div>
+          <div style="font-size:1.4rem;font-weight:900;font-family:var(--mono)" id="prevAfter">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-acts">
+      <button class="btn btn-ghost" onclick="closeMvtModal()" data-ar="إلغاء" data-fr="Annuler"></button>
+      <button class="btn btn-primary" onclick="saveMouvement()">
+        💾 <span data-ar="تسجيل الحركة" data-fr="Enregistrer"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- SALAIRE MODAL -->
 <div class="overlay" id="salaireOverlay">
   <div class="modal">
@@ -1329,7 +1512,7 @@ let selectedRole = 'admin';
 // Avatar colors
 const AVATAR_COLORS = ['#2563EB','#7C3AED','#059669','#D97706','#DC2626','#0891B2'];
 const roleLabels = {admin:{ar:'مدير',fr:'Admin',color:'#7C3AED'}, manager:{ar:'مشرف',fr:'Manager',color:'#2563EB'}, caissier:{ar:'أمين صندوق',fr:'Caissier',color:'#059669'}, livreur:{ar:'موزع',fr:'Livreur',color:'#D97706'}};
-const pageNames = {dashboard:{ar:'لوحة التحكم',fr:'Tableau de bord'}, products:{ar:'المنتجات',fr:'Produits'}, analytics:{ar:'التحليلات',fr:'Analytiques'}, chat:{ar:'دردشة الفريق',fr:'Chat équipe'}, team:{ar:'إدارة الفريق',fr:'Gestion équipe'}, ai:{ar:'مساعد AI',fr:'Assistant IA'}, pointage:{ar:'الحضور والغياب',fr:'Pointage'}, salaires:{ar:'الرواتب والسلف',fr:'Salaires & Avances'}, notifications:{ar:'الإشعارات',fr:'Notifications'}};
+const pageNames = {dashboard:{ar:'لوحة التحكم',fr:'Tableau de bord'}, products:{ar:'المنتجات',fr:'Produits'}, analytics:{ar:'التحليلات',fr:'Analytiques'}, chat:{ar:'دردشة الفريق',fr:'Chat équipe'}, team:{ar:'إدارة الفريق',fr:'Gestion équipe'}, ai:{ar:'مساعد AI',fr:'Assistant IA'}, pointage:{ar:'الحضور والغياب',fr:'Pointage'}, salaires:{ar:'الرواتب والسلف',fr:'Salaires & Avances'}, notifications:{ar:'الإشعارات',fr:'Notifications'}, mouvements:{ar:'حركة المخزون',fr:'Mouvements de stock'}};
 
 // ══════════════════════════════════════════
 //  UTILS
@@ -1551,6 +1734,7 @@ function goTo(page, el) {
   if(page==='pointage') loadPointages();
   if(page==='salaires') loadSalaires();
   if(page==='notifications') loadNotifications();
+  if(page==='mouvements') loadMouvements();
   if(window.innerWidth<=768) document.getElementById('sidebar').classList.remove('open');
 }
 function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); }
@@ -1920,6 +2104,211 @@ document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target
 window.addEventListener('resize',()=>{ document.getElementById('menuBtn').style.display=window.innerWidth<=768?'flex':'none'; });
 
 // ══════════════════════════════════════════
+//  MOUVEMENTS DE STOCK
+// ══════════════════════════════════════════
+let mouvementsList = [];
+let selectedMvtType = 'entree';
+
+function openMvtModal() {
+  selectedMvtType = 'entree';
+  selectMvtType('entree');
+  // Populate products
+  const sel = document.getElementById('mvtProduct');
+  sel.innerHTML = `<option value="">— ${currentLang==='ar'?'اختر منتج':'Choisir produit'} —</option>` +
+    products.map(p => `<option value="${p.id}" data-qty="${p.qty}">${p.name} (${p.qty})</option>`).join('');
+  document.getElementById('mvtQte').value = '';
+  document.getElementById('mvtNote').value = '';
+  document.getElementById('mvtStockInfo').style.display = 'none';
+  document.getElementById('mvtPreview').style.display = 'none';
+  document.getElementById('mvtOverlay').classList.add('open');
+}
+function closeMvtModal() { document.getElementById('mvtOverlay').classList.remove('open'); }
+
+function selectMvtType(type) {
+  selectedMvtType = type;
+  const colors = { entree:'rgba(74,222,128,0.4)', sortie:'rgba(239,68,68,0.4)', ajustement:'rgba(212,175,55,0.4)' };
+  const bgs = { entree:'rgba(74,222,128,0.1)', sortie:'rgba(239,68,68,0.1)', ajustement:'rgba(212,175,55,0.1)' };
+  const textColors = { entree:'#4ADE80', sortie:'#FCA5A5', ajustement:'var(--gold)' };
+  ['entree','sortie','ajustement'].forEach(t => {
+    const btn = document.getElementById('mvtBtn-'+t);
+    const lbl = btn.querySelector('[data-ar]');
+    if(t === type) {
+      btn.style.border = `1.5px solid ${colors[t]}`;
+      btn.style.background = bgs[t];
+      if(lbl) lbl.style.color = textColors[t];
+    } else {
+      btn.style.border = '1px solid var(--border)';
+      btn.style.background = 'var(--surface2)';
+      if(lbl) lbl.style.color = 'var(--muted)';
+    }
+  });
+  updateMvtPreview();
+}
+
+function updateMvtStock() {
+  const sel = document.getElementById('mvtProduct');
+  const opt = sel.options[sel.selectedIndex];
+  if(opt && opt.value) {
+    const qty = opt.getAttribute('data-qty');
+    document.getElementById('mvtCurrentStock').textContent = qty;
+    document.getElementById('mvtStockInfo').style.display = 'block';
+  } else {
+    document.getElementById('mvtStockInfo').style.display = 'none';
+  }
+  updateMvtPreview();
+}
+
+function updateMvtPreview() {
+  const sel = document.getElementById('mvtProduct');
+  const opt = sel.options[sel.selectedIndex];
+  const qte = parseFloat(document.getElementById('mvtQte').value) || 0;
+  if(!opt?.value || !qte) { document.getElementById('mvtPreview').style.display = 'none'; return; }
+  const before = parseFloat(opt.getAttribute('data-qty')) || 0;
+  let after;
+  const arrows = { entree:'📥 ➡️', sortie:'📤 ➡️', ajustement:'🔄 ➡️' };
+  const afterColors = { entree:'#4ADE80', sortie:'#FCA5A5', ajustement:'var(--gold)' };
+  if(selectedMvtType === 'entree') after = before + qte;
+  else if(selectedMvtType === 'sortie') after = before - qte;
+  else after = qte; // ajustement = set directly
+  document.getElementById('mvtPreview').style.display = 'block';
+  document.getElementById('prevBefore').textContent = before;
+  document.getElementById('prevBefore').style.color = 'var(--text2)';
+  document.getElementById('prevArrow').textContent = arrows[selectedMvtType];
+  document.getElementById('prevAfter').textContent = after.toFixed(3);
+  document.getElementById('prevAfter').style.color = after < 0 ? 'var(--red)' : afterColors[selectedMvtType];
+}
+
+async function saveMouvement() {
+  const productId = document.getElementById('mvtProduct').value;
+  const qte = parseFloat(document.getElementById('mvtQte').value);
+  const raison = document.getElementById('mvtRaison').value;
+  const note = document.getElementById('mvtNote').value.trim();
+  const unit = document.getElementById('mvtUnit').value;
+
+  if(!productId) { toast(currentLang==='ar'?'اختر منتجاً':'Choisissez un produit','e'); return; }
+  if(!qte || qte <= 0) { toast(currentLang==='ar'?'أدخل كمية صحيحة':'Quantité invalide','e'); return; }
+  if(!raison) { toast(currentLang==='ar'?'اختر سبب الحركة':'Choisissez une raison','e'); return; }
+
+  const product = products.find(p => p.id === productId);
+  if(!product) return;
+
+  const stockAvant = product.qty;
+  let stockApres;
+  if(selectedMvtType === 'entree') stockApres = stockAvant + qte;
+  else if(selectedMvtType === 'sortie') stockApres = stockAvant - qte;
+  else stockApres = qte;
+
+  if(stockApres < 0) {
+    toast(currentLang==='ar'?`❌ الكمية تتجاوز المخزون (${stockAvant})`:`❌ Quantité dépasse le stock (${stockAvant})`,'e');
+    return;
+  }
+
+  showLoad(true);
+  try {
+    // 1. Save movement
+    await sb('mouvements', {
+      method:'POST',
+      body:JSON.stringify({
+        product_id: productId,
+        product_name: product.name,
+        type: selectedMvtType,
+        quantite: qte,
+        raison: raison + (note ? ` — ${note}` : '') + ` (${unit})`,
+        user_name: userProfile?.full_name || 'User',
+        stock_avant: stockAvant,
+        stock_apres: stockApres
+      }),
+      prefer:'return=minimal'
+    });
+
+    // 2. Update product qty
+    await sb(`products?id=eq.${productId}`, {
+      method:'PATCH',
+      body:JSON.stringify({ qty: stockApres }),
+      prefer:'return=minimal'
+    });
+
+    // 3. Check if low stock after movement
+    if(stockApres <= product.minQty) {
+      await sendNotificationToAdmin('stock_low',
+        `⚠️ ${product.name} — ${currentLang==='ar'?'مخزون منخفض':'Stock bas'}`,
+        `${currentLang==='ar'?'الكمية وصلت':'Quantité atteinte'}: ${stockApres} / ${currentLang==='ar'?'الحد الأدنى':'Seuil min'}: ${product.minQty}`
+      );
+    }
+
+    toast(currentLang==='ar'?'✅ تم تسجيل الحركة':'✅ Mouvement enregistré','s');
+    closeMvtModal();
+    await loadProducts();
+    await loadMouvements();
+  } catch(e) { toast(e.message,'e'); }
+  showLoad(false);
+}
+
+async function loadMouvements() {
+  try {
+    const data = await sb('mouvements?select=*&order=created_at.desc&limit=100');
+    mouvementsList = data || [];
+    // Update stats
+    const entrees = mouvementsList.filter(m=>m.type==='entree').reduce((s,m)=>s+m.quantite,0);
+    const sorties = mouvementsList.filter(m=>m.type==='sortie').reduce((s,m)=>s+m.quantite,0);
+    document.getElementById('mvtTotalEntree').textContent = entrees.toFixed(2);
+    document.getElementById('mvtTotalSortie').textContent = sorties.toFixed(2);
+    document.getElementById('mvtTotal').textContent = mouvementsList.length;
+    // Update product filter
+    const prods = [...new Set(mouvementsList.map(m=>m.product_name))];
+    const pf = document.getElementById('mvtProdFilter');
+    const cur = pf?.value;
+    if(pf) pf.innerHTML = `<option value="">${currentLang==='ar'?'كل المنتجات':'Tous produits'}</option>` +
+      prods.map(p=>`<option value="${p}"${p===cur?' selected':''}>${p}</option>`).join('');
+    renderMouvements();
+  } catch(e) { console.error(e); }
+}
+
+function renderMouvements() {
+  const typeF = document.getElementById('mvtTypeFilter')?.value || '';
+  const prodF = document.getElementById('mvtProdFilter')?.value || '';
+  const search = document.getElementById('mvtSearch')?.value.toLowerCase() || '';
+  let list = mouvementsList.filter(m =>
+    (!typeF || m.type === typeF) &&
+    (!prodF || m.product_name === prodF) &&
+    (!search || m.product_name.toLowerCase().includes(search) || m.raison?.toLowerCase().includes(search))
+  );
+  const tbody = document.getElementById('mvtBody');
+  if(!tbody) return;
+  if(!list.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty"><div class="empty-ic">🔄</div><div class="empty-tt">${currentLang==='ar'?'لا توجد حركات':'Aucun mouvement'}</div></div></td></tr>`;
+    return;
+  }
+  const typeConfig = {
+    entree: { icon:'📥', color:'#4ADE80', label:{ar:'دخول',fr:'Entrée'} },
+    sortie: { icon:'📤', color:'#FCA5A5', label:{ar:'خروج',fr:'Sortie'} },
+    ajustement: { icon:'🔄', color:'var(--gold)', label:{ar:'تعديل',fr:'Ajustement'} }
+  };
+  tbody.innerHTML = list.map(m => {
+    const tc = typeConfig[m.type] || typeConfig.ajustement;
+    const dt = new Date(m.created_at);
+    const dateStr = dt.toLocaleDateString('ar-TN');
+    const timeStr = dt.toLocaleTimeString('ar-TN',{hour:'2-digit',minute:'2-digit'});
+    const diff = m.type==='entree' ? `+${m.quantite}` : m.type==='sortie' ? `-${m.quantite}` : `=${m.quantite}`;
+    return `<tr>
+      <td><strong>${m.product_name}</strong></td>
+      <td>
+        <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;
+          background:${tc.color}18;color:${tc.color};font-size:0.75rem;font-weight:800;font-family:var(--mono)">
+          ${tc.icon} ${tc.label[currentLang]||tc.label.ar}
+        </span>
+      </td>
+      <td style="font-family:var(--mono);font-weight:800;color:${tc.color}">${diff}</td>
+      <td style="font-family:var(--mono);color:var(--text2)">${m.stock_avant ?? '—'}</td>
+      <td style="font-family:var(--mono);font-weight:700;color:${m.stock_apres<=0?'#FCA5A5':'var(--text)'}">${m.stock_apres ?? '—'}</td>
+      <td style="font-size:0.82rem;color:var(--text2);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.raison||'—'}</td>
+      <td style="font-size:0.8rem;color:var(--muted)">${m.user_name||'—'}</td>
+      <td style="font-family:var(--mono);font-size:0.75rem;color:var(--muted)">${timeStr}<br>${dateStr}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
 //  POINTAGE
 // ══════════════════════════════════════════
 async function doPointage(type) {
@@ -1927,38 +2316,72 @@ async function doPointage(type) {
   const statusMsg = document.getElementById('pointageStatusMsg');
   const statusSub = document.getElementById('pointageStatusSub');
   statusDiv.style.display = 'block';
-  statusMsg.textContent = currentLang==='ar' ? '📍 جاري تحديد موقعك...' : '📍 Localisation en cours...';
-  statusSub.textContent = '';
-  statusDiv.style.background = 'var(--accent-light)';
-  statusDiv.style.border = '1.5px solid var(--border)';
+  statusDiv.style.background = 'rgba(212,175,55,0.08)';
+  statusDiv.style.border = '1px solid rgba(212,175,55,0.3)';
+  statusMsg.style.color = 'var(--gold)';
+  statusMsg.textContent = currentLang==='ar' ? '📡 جاري تحديد موقعك بدقة...' : '📡 Localisation en cours...';
+  statusSub.textContent = currentLang==='ar' ? 'انتظر لحظة — نطلب أعلى دقة ممكنة' : 'Patientez — haute précision demandée';
 
   if(!navigator.geolocation) {
-    // Pointage without GPS
-    await savePointage(type, null, null, 'موقع غير متاح');
+    await savePointage(type, null, null, 'GPS غير متاح');
     return;
   }
 
-  navigator.geolocation.getCurrentPosition(
-    async (pos) => {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-      // Reverse geocode
-      let adresse = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-      try {
-        const geo = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
-        const geoData = await geo.json();
-        adresse = geoData.display_name?.split(',').slice(0,3).join(',') || adresse;
-      } catch(e) {}
-      await savePointage(type, lat, lng, adresse);
-    },
-    async (err) => {
-      await savePointage(type, null, null, 'موقع غير متاح');
-    },
-    { timeout: 10000, enableHighAccuracy: true }
-  );
+  // Try high accuracy first, fallback to low accuracy
+  function getPosition(highAccuracy) {
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: highAccuracy,
+        timeout: highAccuracy ? 15000 : 8000,
+        maximumAge: 0  // لا تستخدم موقع قديم
+      });
+    });
+  }
+
+  try {
+    let pos;
+    try {
+      pos = await getPosition(true); // دقة عالية أولاً
+    } catch(e) {
+      statusSub.textContent = currentLang==='ar' ? 'GPS بطيء — نجرب طريقة ثانية...' : 'GPS lent — essai alternatif...';
+      pos = await getPosition(false); // دقة عادية كـ fallback
+    }
+
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    const accuracy = Math.round(pos.coords.accuracy);
+
+    statusSub.textContent = currentLang==='ar' ? `✅ تم تحديد الموقع — دقة: ${accuracy}م` : `✅ Position trouvée — précision: ${accuracy}m`;
+
+    // Reverse geocode
+    let adresse = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    try {
+      const geo = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=18&addressdetails=1`,
+        { headers: { 'Accept-Language': 'ar,fr' } }
+      );
+      const geoData = await geo.json();
+      if(geoData.display_name) {
+        // نأخذ أول 3 أجزاء من العنوان (الأقرب للموقع)
+        adresse = geoData.display_name.split(',').slice(0,3).join(',').trim();
+      }
+    } catch(e) { /* keep coordinates */ }
+
+    await savePointage(type, lat, lng, adresse, accuracy);
+
+  } catch(err) {
+    let errMsg = currentLang==='ar' ? 'تعذر تحديد الموقع' : 'Impossible de localiser';
+    if(err.code === 1) errMsg = currentLang==='ar' ? '❌ رفضت الإذن — فعّل GPS' : '❌ Permission refusée — activez le GPS';
+    if(err.code === 2) errMsg = currentLang==='ar' ? '❌ GPS غير متاح' : '❌ GPS indisponible';
+    if(err.code === 3) errMsg = currentLang==='ar' ? '⏱ انتهى وقت الانتظار' : '⏱ Délai expiré';
+    statusMsg.style.color = 'var(--red)';
+    statusMsg.textContent = errMsg;
+    // Save without GPS
+    await savePointage(type, null, null, errMsg);
+  }
 }
 
-async function savePointage(type, lat, lng, adresse) {
+async function savePointage(type, lat, lng, adresse, accuracy=null) {
   const statusMsg = document.getElementById('pointageStatusMsg');
   const statusSub = document.getElementById('pointageStatusSub');
   const statusDiv = document.getElementById('pointageStatus');
@@ -1977,7 +2400,7 @@ async function savePointage(type, lat, lng, adresse) {
     statusMsg.textContent = isArrivee ?
       (currentLang==='ar' ? '✅ تم تسجيل وصولك بنجاح!' : '✅ Arrivée enregistrée!') :
       (currentLang==='ar' ? '✅ تم تسجيل مغادرتك بنجاح!' : '✅ Départ enregistré!');
-    statusSub.textContent = `📍 ${adresse} • ${new Date().toLocaleTimeString('ar-TN')}`;
+    statusSub.textContent = `📍 ${adresse}${accuracy?' (±'+accuracy+'م)':''} • ${new Date().toLocaleTimeString('ar-TN')}`;
 
     // Send notification to admin
     await sendNotificationToAdmin(
