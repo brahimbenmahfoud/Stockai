@@ -2023,8 +2023,8 @@ async function loadTeam() {
 // ══════════════════════════════════════════
 //  AI CHAT
 // ══════════════════════════════════════════
-const GEMINI_KEY = 'AIzaSyAhQTHysBfNxFFdAL8TWEJtiSddZmsU_9s';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+const AI_KEY = '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';
+const AI_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 function getStockCtx(){
   return `أنت مساعد ذكي لإدارة المخزون اسمك StockAI. تجاوب بالعربية أو الفرنسية حسب لغة السؤال. كن موجزاً ومفيداً ومباشراً.
@@ -2053,21 +2053,28 @@ async function sendAIMsg(){
   const typId=addTyping();
   document.getElementById('aiSendBtn').disabled=true;
   try {
-    const res = await fetch(GEMINI_URL, {
+    const res = await fetch(AI_URL, {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer '+AI_KEY,
+        'HTTP-Referer':'https://stockaibbm.netlify.app',
+        'X-Title':'StockAI Pro'
+      },
       body:JSON.stringify({
-        contents:[{
-          role:'user',
-          parts:[{text: getStockCtx() + '\n\nسؤال المستخدم: ' + msg}]
-        }],
-        generationConfig:{ maxOutputTokens:1000, temperature:0.7 }
+        model:'meta-llama/llama-3.1-8b-instruct:free',
+        messages:[
+          {role:'system', content: getStockCtx()},
+          {role:'user', content: msg}
+        ],
+        max_tokens:1000,
+        temperature:0.7
       })
     });
     const data = await res.json();
     removeTyping(typId);
     if(data.error){ addAIMsg('❌ '+data.error.message,'ai'); return; }
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || (currentLang==='ar'?'لم أفهم السؤال':'Je n\'ai pas compris');
+    const text = data.choices?.[0]?.message?.content || (currentLang==='ar'?'لم أفهم السؤال':'Je n\'ai pas compris');
     if(text.includes('ADD_PRODUCT:')){
       try{
         const jsonStr=text.split('ADD_PRODUCT:')[1].trim();
