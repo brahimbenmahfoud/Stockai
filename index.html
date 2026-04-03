@@ -2062,7 +2062,7 @@ async function sendAIMsg(){
         'X-Title':'StockAI Pro'
       },
       body:JSON.stringify({
-        model:'mistralai/mistral-7b-instruct:free',
+        model:'deepseek/deepseek-r1:free',
         messages:[
           {role:'system', content: getStockCtx()},
           {role:'user', content: msg}
