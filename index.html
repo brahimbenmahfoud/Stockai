@@ -2040,8 +2040,17 @@ function getStockCtx(){
 قائمة المنتجات:
 ${products.map(p=>`• ${p.name} | ${p.category} | الكمية: ${p.qty} | الحد: ${p.minQty} | السعر: ${p.price} TND`).join('\n')||'لا توجد منتجات'}
 
-إذا طُلب إضافة منتج، اطلب المعلومات الناقصة ثم أرسل في السطر الأخير بالضبط:
-ADD_PRODUCT:{"name":"...","category":"...","price":0,"qty":0,"min_qty":0}`;
+إذا طُلب إضافة كمية لمنتج موجود، استخدم حركة دخول:
+ADD_MOUVEMENT:{"product_name":"...","type":"entree","quantite":0,"raison":"achat"}
+
+إذا طُلب تخفيض كمية أو إخراج مخزون، استخدم حركة خروج:
+ADD_MOUVEMENT:{"product_name":"...","type":"sortie","quantite":0,"raison":"utilisation"}
+
+إذا طُلب إضافة منتج جديد غير موجود في القائمة، أرسل:
+ADD_PRODUCT:{"name":"...","category":"...","price":0,"qty":0,"min_qty":0}
+
+قائمة المنتجات الموجودة حالياً (استخدمها للمقارنة):
+${products.map(p=>`• ${p.name} (id:${p.id})`).join('\n')||'لا توجد منتجات'}`;
 }
 
 async function sendAIMsg(){
@@ -2073,7 +2082,38 @@ async function sendAIMsg(){
     removeTyping(typId);
     if(data.error){ addAIMsg('❌ '+data.error.message,'ai'); return; }
     const text = data.choices?.[0]?.message?.content || (currentLang==='ar'?'لم أفهم السؤال':'Je n\'ai pas compris');
-    if(text.includes('ADD_PRODUCT:')){
+
+    // Handle ADD_MOUVEMENT
+    if(text.includes('ADD_MOUVEMENT:')){
+      try{
+        const jsonStr = text.split('ADD_MOUVEMENT:')[1].trim().split('\n')[0];
+        const mvt = JSON.parse(jsonStr);
+        // Find product by name
+        const product = products.find(p =>
+          p.name.toLowerCase().includes(mvt.product_name.toLowerCase()) ||
+          mvt.product_name.toLowerCase().includes(p.name.toLowerCase())
+        );
+        if(!product) throw new Error('منتج غير موجود: '+mvt.product_name);
+        const stockAvant = product.qty;
+        const stockApres = mvt.type==='entree' ? stockAvant + mvt.quantite : stockAvant - mvt.quantite;
+        if(stockApres < 0) throw new Error('الكمية تتجاوز المخزون');
+        // Save movement
+        await sb('mouvements', {method:'POST', body:JSON.stringify({
+          product_id: product.id, product_name: product.name,
+          type: mvt.type, quantite: mvt.quantite, raison: mvt.raison||'AI',
+          user_name: userProfile?.full_name||'AI', stock_avant: stockAvant, stock_apres: stockApres
+        }), prefer:'return=minimal'});
+        // Update product qty
+        await sb(`products?id=eq.${product.id}`, {method:'PATCH', body:JSON.stringify({qty: stockApres}), prefer:'return=minimal'});
+        await loadProducts();
+        await loadMouvements();
+        const cleanText = text.split('ADD_MOUVEMENT:')[0].trim();
+        addAIMsg(cleanText+'\n\n✅ '+(mvt.type==='entree'?`تم إضافة ${mvt.quantite} لـ ${product.name} (${stockAvant} → ${stockApres})`:`تم خصم ${mvt.quantite} من ${product.name} (${stockAvant} → ${stockApres})`),'ai');
+        toast('✅ تم تحديث المخزون تلقائياً','s');
+      }catch(e){ addAIMsg(text.split('ADD_MOUVEMENT:')[0].trim()+'\n\n❌ '+e.message,'ai'); }
+    }
+    // Handle ADD_PRODUCT
+    else if(text.includes('ADD_PRODUCT:')){
       try{
         const jsonStr=text.split('ADD_PRODUCT:')[1].trim();
         const prod=JSON.parse(jsonStr);
