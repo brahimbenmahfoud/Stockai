@@ -2023,8 +2023,8 @@ async function loadTeam() {
 // ══════════════════════════════════════════
 //  AI CHAT
 // ══════════════════════════════════════════
-const AI_KEY = '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';
-const AI_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const AI_KEY = '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';
+const AI_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 function getStockCtx(){
   return `أنت مساعد ذكي لإدارة المخزون اسمك StockAI. تجاوب بالعربية أو الفرنسية حسب لغة السؤال. كن موجزاً ومفيداً ومباشراً.
@@ -2057,12 +2057,10 @@ async function sendAIMsg(){
       method:'POST',
       headers:{
         'Content-Type':'application/json',
-        'Authorization':'Bearer '+AI_KEY,
-        'HTTP-Referer':'https://stockai-khaki.vercel.app',
-        'X-Title':'StockAI Pro'
+        'Authorization':'Bearer '+AI_KEY
       },
       body:JSON.stringify({
-        model:'qwen/qwen3.6-plus:free',
+        model:'llama-3.1-8b-instant',
         messages:[
           {role:'system', content: getStockCtx()},
           {role:'user', content: msg}
