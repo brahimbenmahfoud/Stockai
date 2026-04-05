@@ -1163,6 +1163,12 @@ body::before {
             </div>
           </div>
           <div class="ai-inp-bar">
+            <button id="micBtn" onclick="toggleMic()" title="تحدث بالمايكرو"
+              style="width:44px;height:44px;border-radius:var(--r-sm);border:1px solid var(--border);
+              background:var(--surface2);color:var(--muted);cursor:pointer;display:flex;
+              align-items:center;justify-content:center;font-size:1.1rem;transition:all var(--t);flex-shrink:0">
+              🎤
+            </button>
             <textarea class="ai-textarea" id="aiInput" rows="1" placeholder="" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAIMsg()}" oninput="autoResize(this)"></textarea>
             <button class="ai-send" id="aiSendBtn" onclick="sendAIMsg()">➤</button>
           </div>
@@ -2044,17 +2050,23 @@ function getStockCtx(){
 قائمة المنتجات:
 ${products.map(p=>`• ${p.name} | ${p.category} | الكمية: ${p.qty} | الحد: ${p.minQty} | السعر: ${p.price} TND`).join('\n')||'لا توجد منتجات'}
 
-إذا طُلب إضافة كمية لمنتج موجود، استخدم حركة دخول:
-ADD_MOUVEMENT:{"product_name":"...","type":"entree","quantite":0,"raison":"achat"}
+قواعد مهمة جداً:
+1. إذا طُلب زيادة كمية منتج موجود في القائمة → استخدم ADD_MOUVEMENT (دخول)
+2. إذا طُلب تخفيض أو إخراج كمية → استخدم ADD_MOUVEMENT (خروج)  
+3. إذا طُلب إضافة منتج جديد غير موجود في القائمة أبداً → استخدم ADD_PRODUCT
+4. قارن دائماً بالقائمة قبل القرار
 
-إذا طُلب تخفيض كمية أو إخراج مخزون، استخدم حركة خروج:
-ADD_MOUVEMENT:{"product_name":"...","type":"sortie","quantite":0,"raison":"utilisation"}
+لزيادة كمية منتج موجود:
+ADD_MOUVEMENT:{"product_name":"اسم المنتج كما هو في القائمة","type":"entree","quantite":20,"raison":"achat"}
 
-إذا طُلب إضافة منتج جديد غير موجود في القائمة، أرسل:
+لتخفيض كمية:
+ADD_MOUVEMENT:{"product_name":"اسم المنتج","type":"sortie","quantite":5,"raison":"utilisation"}
+
+لمنتج جديد غير موجود في القائمة:
 ADD_PRODUCT:{"name":"...","category":"...","price":0,"qty":0,"min_qty":0}
 
-قائمة المنتجات الموجودة حالياً (استخدمها للمقارنة):
-${products.map(p=>`• ${p.name} (id:${p.id})`).join('\n')||'لا توجد منتجات'}`;
+قائمة المنتجات الموجودة (لا تضف منتجاً موجوداً هنا كمنتج جديد!):
+${products.map(p=>`• "${p.name}" — الكمية: ${p.qty}`).join('\n')||'القائمة فارغة — كل منتج يُعتبر جديد'}`;
 }
 
 async function sendAIMsg(){
@@ -2171,7 +2183,71 @@ document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target
 window.addEventListener('resize',()=>{ document.getElementById('menuBtn').style.display=window.innerWidth<=768?'flex':'none'; });
 
 // ══════════════════════════════════════════
-//  RESET STOCK
+//  SPEECH TO TEXT (مايكرو)
+// ══════════════════════════════════════════
+let recognition = null;
+let isListening = false;
+
+function toggleMic() {
+  if(!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    toast(currentLang==='ar'?'المتصفح لا يدعم المايكرو':'Navigateur non compatible','e');
+    return;
+  }
+  if(isListening) {
+    stopMic();
+  } else {
+    startMic();
+  }
+}
+
+function startMic() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRec();
+  recognition.lang = currentLang === 'ar' ? 'ar-TN' : 'fr-FR';
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  isListening = true;
+  const btn = document.getElementById('micBtn');
+  btn.style.background = 'rgba(212,175,55,0.2)';
+  btn.style.borderColor = 'rgba(212,175,55,0.5)';
+  btn.style.color = 'var(--gold)';
+  btn.innerHTML = '🔴';
+  btn.title = currentLang==='ar'?'اضغط لإيقاف':'Appuyez pour arrêter';
+  toast(currentLang==='ar'?'🎤 جاري الاستماع...':'🎤 Écoute en cours...','i');
+
+  recognition.onresult = (e) => {
+    const transcript = Array.from(e.results).map(r=>r[0].transcript).join('');
+    document.getElementById('aiInput').value = transcript;
+    autoResize(document.getElementById('aiInput'));
+  };
+
+  recognition.onend = () => {
+    stopMic();
+    // Auto-send if has text
+    const val = document.getElementById('aiInput').value.trim();
+    if(val) setTimeout(sendAIMsg, 300);
+  };
+
+  recognition.onerror = (e) => {
+    stopMic();
+    if(e.error !== 'no-speech') toast(currentLang==='ar'?'خطأ في المايكرو: '+e.error:'Erreur micro: '+e.error,'e');
+  };
+
+  recognition.start();
+}
+
+function stopMic() {
+  isListening = false;
+  if(recognition) { try { recognition.stop(); } catch(e){} }
+  const btn = document.getElementById('micBtn');
+  if(btn) {
+    btn.style.background = 'var(--surface2)';
+    btn.style.borderColor = 'var(--border)';
+    btn.style.color = 'var(--muted)';
+    btn.innerHTML = '🎤';
+    btn.title = currentLang==='ar'?'تحدث بالمايكرو':'Parler au micro';
+  }
+}
 // ══════════════════════════════════════════
 async function resetStock() {
   // Modal تأكيد مخصص
