@@ -969,7 +969,10 @@ body::before {
           <div class="page-ttl" data-ar="المنتجات" data-fr="Produits"></div>
           <div class="page-sub" id="prodCount">—</div>
         </div>
-        <button class="btn btn-primary" onclick="openModal()" id="addProdBtn"><span>+</span> <span data-ar="إضافة منتج" data-fr="Ajouter produit"></span></button>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="openModal()" id="addProdBtn"><span>+</span> <span data-ar="إضافة منتج" data-fr="Ajouter produit"></span></button>
+          <button class="btn btn-danger" onclick="resetStock()" id="resetStockBtn" style="display:none">🗑️ <span data-ar="مسح المخزون" data-fr="Réinitialiser stock"></span></button>
+        </div>
       </div>
       <div class="toolbar">
         <div class="srch-wrap">
@@ -1697,6 +1700,7 @@ function showApp() {
   }
   // Permissions
   if(role==='livreur') document.getElementById('addProdBtn').style.display='none';
+  if(role==='admin') document.getElementById('resetStockBtn').style.display='flex';
   // Mobile menu btn
   if(window.innerWidth<=768) document.getElementById('menuBtn').style.display='flex';
   // Lang
@@ -2167,7 +2171,54 @@ document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target
 window.addEventListener('resize',()=>{ document.getElementById('menuBtn').style.display=window.innerWidth<=768?'flex':'none'; });
 
 // ══════════════════════════════════════════
-//  MOUVEMENTS DE STOCK
+//  RESET STOCK
+// ══════════════════════════════════════════
+async function resetStock() {
+  // Modal تأكيد مخصص
+  const confirmed = await showResetConfirm();
+  if(!confirmed) return;
+  showLoad(true);
+  try {
+    // حذف الحركات أولاً (foreign key)
+    await sb('mouvements?id=neq.00000000-0000-0000-0000-000000000000', {method:'DELETE', prefer:'return=minimal'});
+    // حذف المنتجات
+    await sb('products?id=neq.00000000-0000-0000-0000-000000000000', {method:'DELETE', prefer:'return=minimal'});
+    await loadProducts();
+    mouvementsList = [];
+    toast(currentLang==='ar'?'✅ تم مسح المخزون بنجاح':'✅ Stock réinitialisé','s');
+  } catch(e) { toast(e.message,'e'); }
+  showLoad(false);
+}
+
+function showResetConfirm() {
+  return new Promise(resolve => {
+    // Create confirm modal
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(10px)';
+    overlay.innerHTML = `
+      <div style="background:#161616;border:1px solid rgba(212,175,55,0.3);border-radius:20px;padding:32px;max-width:380px;width:100%;text-align:center;position:relative">
+        <div style="font-size:3rem;margin-bottom:16px">⚠️</div>
+        <div style="font-size:1.1rem;font-weight:800;color:#F5F0E8;margin-bottom:10px">
+          ${currentLang==='ar'?'مسح كل المخزون؟':'Réinitialiser tout le stock?'}
+        </div>
+        <div style="font-size:0.85rem;color:#604E3A;margin-bottom:24px;line-height:1.6">
+          ${currentLang==='ar'?'سيتم حذف كل المنتجات وحركات المخزون نهائياً. هذا الإجراء لا يمكن التراجع عنه!':'Tous les produits et mouvements seront supprimés définitivement. Cette action est irréversible!'}
+        </div>
+        <div style="display:flex;gap:10px;justify-content:center">
+          <button id="resetCancelBtn" style="padding:12px 24px;border-radius:10px;border:1px solid #2A2A2A;background:#1A1A1A;color:#A09880;font-family:var(--font);font-size:0.9rem;font-weight:700;cursor:pointer">
+            ${currentLang==='ar'?'إلغاء':'Annuler'}
+          </button>
+          <button id="resetConfirmBtn" style="padding:12px 24px;border-radius:10px;border:none;background:linear-gradient(135deg,#EF4444,#DC2626);color:#fff;font-family:var(--font);font-size:0.9rem;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(239,68,68,0.4)">
+            🗑️ ${currentLang==='ar'?'نعم، امسح كل شيء':'Oui, tout supprimer'}
+          </button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    document.getElementById('resetCancelBtn').onclick = () => { overlay.remove(); resolve(false); };
+    document.getElementById('resetConfirmBtn').onclick = () => { overlay.remove(); resolve(true); };
+    overlay.onclick = (e) => { if(e.target===overlay){ overlay.remove(); resolve(false); } };
+  });
+}
 // ══════════════════════════════════════════
 let mouvementsList = [];
 let selectedMvtType = 'entree';
